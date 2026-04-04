@@ -15,9 +15,9 @@ const DUMMY_AVATAR = "https://api.dicebear.com/8.x/initials/svg?seed=Rajesh&back
 
 // Regex Patterns for Indian Validation
 const indianZipRegex = /^[1-9][0-9]{5}$/; // 6 digits, cannot start with 0
-const indianPhoneRegex = /^(?:\+91[\s]?|91[\s]?)?[6789]\d{9}$/; // Standard Indian Mobile pattern (added optional space)
+const indianPhoneRegex = /^(?:\+91[\s]?|91[\s]?)?[6789]\d{9}$/; // Standard Indian Mobile pattern
 
-// Zod Validation Schema (Added max lengths to match HTML inputs)
+// Zod Validation Schema
 const accountSchema = z.object({
     firstName: z.string().min(2, "Min 2 characters").max(50, "Max 50 characters").regex(/^[a-zA-Z\s]+$/, "Letters only"),
     lastName: z.string().min(1, "Required").max(50, "Max 50 characters").regex(/^[a-zA-Z\s]+$/, "Letters only"),
@@ -86,9 +86,10 @@ const AccountTab = () => {
     const [profileImage, setProfileImage] = useState(DUMMY_AVATAR);
     const fileInputRef = useRef(null);
 
-    const { control, handleSubmit, reset, register, formState: { errors, isDirty } } = useForm({
+    // FIX: Removed 'isDirty' from this line so it doesn't trigger the Vercel unused variable error
+    const { control, handleSubmit, reset, register, formState: { errors } } = useForm({
         resolver: zodResolver(accountSchema),
-        mode: 'onChange', // FIX: Added this to enable real-time live validation
+        mode: 'onChange',
         defaultValues: {
             firstName: 'Rajesh', lastName: 'Kumar', email: 'rajesh.kumar@example.in', organization: 'ThemeSelection',
             phoneNumber: '+91 9876543210', address: '123, MG Road, Indira Nagar',
@@ -162,28 +163,22 @@ const AccountTab = () => {
                     <form onSubmit={handleSubmit(onSubmit, onError)}>
                         <div style={styles.formGrid}>
                             <Controller name="firstName" control={control} render={({ field }) => (
-                                // FIX: Added type and maxLength
-                                <FormInput label="First Name" id="firstName" error={errors.firstName} placeholder="e.g., Rajesh" type="text" maxLength={50} />
+                                <FormInput label="First Name" id="firstName" error={errors.firstName} placeholder="e.g., Rajesh" type="text" maxLength={50} {...field} />
                             )} />
                             <Controller name="lastName" control={control} render={({ field }) => (
-                                // FIX: Added type and maxLength
-                                <FormInput label="Last Name" id="lastName" error={errors.lastName} placeholder="e.g., Sharma" type="text" maxLength={50} />
+                                <FormInput label="Last Name" id="lastName" error={errors.lastName} placeholder="e.g., Sharma" type="text" maxLength={50} {...field} />
                             )} />
                             <Controller name="email" control={control} render={({ field }) => (
-                                // FIX: Added type email and maxLength
-                                <FormInput label="E-mail" id="email" error={errors.email} placeholder="e.g., user@example.in" type="email" maxLength={100} />
+                                <FormInput label="E-mail" id="email" error={errors.email} placeholder="e.g., user@example.in" type="email" maxLength={100} {...field} />
                             )} />
                             <Controller name="organization" control={control} render={({ field }) => (
-                                // FIX: Added type and maxLength
-                                <FormInput label="Organization" id="organization" error={errors.organization} placeholder="e.g., Tata Consultancy" type="text" maxLength={100} />
+                                <FormInput label="Organization" id="organization" error={errors.organization} placeholder="e.g., Tata Consultancy" type="text" maxLength={100} {...field} />
                             )} />
                             <Controller name="phoneNumber" control={control} render={({ field }) => (
-                                // FIX: Added type tel and maxLength (15 to accommodate country code and spaces)
-                                <FormInput label="Phone Number" id="phoneNumber" error={errors.phoneNumber} placeholder="e.g., +91 9876543210" type="tel" maxLength={13} />
+                                <FormInput label="Phone Number" id="phoneNumber" error={errors.phoneNumber} placeholder="e.g., +91 9876543210" type="tel" maxLength={15} {...field} />
                             )} />
                             <Controller name="address" control={control} render={({ field }) => (
-                                // FIX: Added type and maxLength
-                                <FormInput label="Address" id="address" error={errors.address} placeholder="e.g., 123, MG Road" type="text" maxLength={200} />
+                                <FormInput label="Address" id="address" error={errors.address} placeholder="e.g., 123, MG Road" type="text" maxLength={200} {...field} />
                             )} />
 
                             {/* Dynamic State Dropdown from country-state-city library */}
@@ -196,8 +191,7 @@ const AccountTab = () => {
                             </div>
 
                             <Controller name="zipCode" control={control} render={({ field }) => (
-                                // FIX: Added type text and strict 6 digit limit 
-                                <FormInput label="Pin Code" id="zipCode" error={errors.zipCode} placeholder="e.g., 560001" type="text" maxLength={6} />
+                                <FormInput label="Pin Code" id="zipCode" error={errors.zipCode} placeholder="e.g., 560001" type="text" maxLength={6} {...field} />
                             )} />
 
                             {/* Fixed Read-Only Fields */}
