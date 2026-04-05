@@ -6,42 +6,56 @@ const bcrypt = require('bcrypt');
 
 const app = express();
 
-// Middleware to parse JSON and allow connections from React
-app.use(cors());
+// Allow requests from anywhere (Vercel)
+app.use(cors({ origin: '*' }));
 app.use(express.json());
 
-// Set up MySQL connection (Default XAMPP credentials)
+// Set up MySQL connection using Environment Variables and SSL
 const db = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',      // XAMPP default user is 'root'
-    password: '',      // XAMPP default password is empty
-    database: 'auth_db'
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    port: process.env.DB_PORT,
+    database: process.env.DB_NAME,
+    ssl: {
+        rejectUnauthorized: false // CRITICAL: Aiven requires SSL to connect!
+    }
 });
 
-// Connect to the database
+// Connect to the cloud database and auto-create the table
 db.connect((err) => {
     if (err) {
         console.error('Database connection failed: ' + err.stack);
         return;
     }
-    console.log('Connected to MySQL database.');
+    console.log('Connected to Cloud MySQL database.');
+
+    // Automatically create the users table if it doesn't exist!
+    const createTableQuery = `
+        CREATE TABLE IF NOT EXISTS users (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            username VARCHAR(255) NOT NULL,
+            email VARCHAR(255) NOT NULL UNIQUE,
+            password VARCHAR(255) NOT NULL
+        )
+    `;
+    db.query(createTableQuery, (err, result) => {
+        if (err) console.error("Error creating table: ", err);
+        else console.log("Users table is ready!");
+    });
 });
 
 // --- SIGNUP ROUTE ---
 app.post('/signup', async (req, res) => {
     const { username, email, password } = req.body;
-
     try {
-        // 1. Check if user already exists
         db.query('SELECT * FROM users WHERE email = ?', [email], async (err, results) => {
             if (err) return res.status(500).json({ error: 'Database error' });
             if (results.length > 0) return res.status(400).json({ error: 'Email already exists' });
 
-            // 2. Encrypt the password before saving
             const salt = await bcrypt.genSalt(10);
             const hashedPassword = await bcrypt.hash(password, salt);
 
-            // 3. Save user to database
             const insertQuery = 'INSERT INTO users (username, email, password) VALUES (?, ?, ?)';
             db.query(insertQuery, [username, email, hashedPassword], (err, result) => {
                 if (err) return res.status(500).json({ error: 'Failed to register user' });
@@ -56,28 +70,22 @@ app.post('/signup', async (req, res) => {
 // --- LOGIN ROUTE ---
 app.post('/login', (req, res) => {
     const { email, password } = req.body;
-
-    // 1. Find user by email
     db.query('SELECT * FROM users WHERE email = ?', [email], async (err, results) => {
         if (err) return res.status(500).json({ error: 'Database error' });
         if (results.length === 0) return res.status(400).json({ error: 'User not found' });
 
         const user = results[0];
-
-        // 2. Compare the provided password with the encrypted password in the database
         const isMatch = await bcrypt.compare(password, user.password);
 
         if (!isMatch) {
             return res.status(400).json({ error: 'Incorrect password' });
         }
-
-        // 3. Success!
         res.status(200).json({ message: 'Login successful', user: { id: user.id, username: user.username, email: user.email } });
     });
 });
 
-// Start the server
-const PORT = 5000;
+// Use dynamic port for Render
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`Backend Server running on port ${PORT}`);
 });
