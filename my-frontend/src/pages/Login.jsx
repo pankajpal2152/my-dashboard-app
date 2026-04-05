@@ -110,7 +110,7 @@ const LoginForm = ({ onLogin, onToggleView }) => {
 
 // --- 2. SIGNUP COMPONENT ---
 const SignupForm = ({ onSignup, onToggleView }) => {
-    const navigate = useNavigate();
+    // Removed the unused 'navigate' variable here
     const [showPassword, setShowPassword] = useState(false);
     const [credentials, setCredentials] = useState({ username: '', email: '', password: '' });
 
