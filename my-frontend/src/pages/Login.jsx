@@ -41,8 +41,8 @@ const LoginForm = ({ onLogin, onToggleView }) => {
         }
 
         try {
-            // Send Data to Node.js Backend
-            const response = await fetch('http://localhost:5000/login', {
+            // Updated to use your live Render URL
+            const response = await fetch('https://my-dashboard-app-ky8v.onrender.com/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(credentials)
@@ -110,7 +110,6 @@ const LoginForm = ({ onLogin, onToggleView }) => {
 
 // --- 2. SIGNUP COMPONENT ---
 const SignupForm = ({ onSignup, onToggleView }) => {
-    // Removed the unused 'navigate' variable here
     const [showPassword, setShowPassword] = useState(false);
     const [credentials, setCredentials] = useState({ username: '', email: '', password: '' });
 
@@ -124,8 +123,8 @@ const SignupForm = ({ onSignup, onToggleView }) => {
         }
 
         try {
-            // Send Data to Node.js Backend
-            const response = await fetch('http://localhost:5000/signup', {
+            // Updated to use your live Render URL
+            const response = await fetch('https://my-dashboard-app-ky8v.onrender.com/signup', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(credentials)
