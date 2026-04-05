@@ -9,7 +9,7 @@ const Sidebar = () => {
     const styles = {
         sidebar: { width: '260px', backgroundColor: '#ffffff', display: 'flex', flexDirection: 'column', boxShadow: '0 2px 6px 0 rgba(67, 89, 113, 0.12)', zIndex: 10 },
         brandWrapper: { padding: '20px 24px', display: 'flex', alignItems: 'center', fontSize: '22px', fontWeight: 'bold', color: '#566a7f', letterSpacing: '-0.5px', textDecoration: 'none' },
-        brandIcon: { color: '#696cff', marginRight: '10px', fontSize: '28px' },
+        brandLogo: { width: '32px', height: 'auto', marginRight: '10px' },
         menuList: { listStyle: 'none', padding: '0', margin: '0', flex: 1, overflowY: 'auto' },
         link: { textDecoration: 'none', display: 'block' },
         sectionHeader: { fontSize: '11px', textTransform: 'uppercase', color: '#a1acb8', margin: '16px 24px 8px 24px', letterSpacing: '0.4px', fontWeight: '500' },
@@ -55,7 +55,7 @@ const Sidebar = () => {
     return (
         <aside style={styles.sidebar}>
             <div style={styles.brandWrapper}>
-                <span style={styles.brandIcon}>S</span> sneat
+                <img src="/logo.png" alt="SHEVA ASHARM Logo" style={styles.brandLogo} /> SHEVA ASHARM
             </div>
 
             <ul style={styles.menuList}>

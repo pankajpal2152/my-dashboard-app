@@ -49,7 +49,7 @@ const LoginForm = ({ onLogin, onToggleView }) => {
                 {/* Replaced SVG and text with logo.png */}
                 <img src="/logo.png" alt="App Logo" style={styles.logoImage} />
             </div>
-            <h3 style={styles.welcomeText}>Welcome to Sneat! 👋</h3>
+            <h3 style={styles.welcomeText}>Welcome! 👋</h3>
             <p style={styles.subText}>Please sign-in to your account and start the adventure</p>
 
             <form onSubmit={handleSubmit}>
