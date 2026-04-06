@@ -87,10 +87,13 @@ db.connect((err) => {
     `;
     db.query(createRegInfoTable, () => { });
 
-    // 5. MAGIC FIX: Automatically add the 'ProfileImage' column to your existing live table!
-    db.query("ALTER TABLE reginfo ADD COLUMN ProfileImage LONGTEXT DEFAULT NULL AFTER RegInfoId", (err) => {
-        if (!err) console.log("Successfully added missing 'ProfileImage' column to existing reginfo table!");
-    });
+    // 5. MAGIC FIXES: Automatically add any missing columns to your existing live database!
+    // We ignore errors here because if the column already exists, it will just quietly skip it.
+    db.query("ALTER TABLE reginfo ADD COLUMN ProfileImage LONGTEXT DEFAULT NULL", () => { });
+    db.query("ALTER TABLE reginfo ADD COLUMN Status int(1) DEFAULT 1", () => { });
+    db.query("ALTER TABLE reginfo ADD COLUMN AprovedBy int(11) DEFAULT NULL", () => { });
+    db.query("ALTER TABLE reginfo ADD COLUMN AprovalDate date DEFAULT NULL", () => { });
+    db.query("ALTER TABLE reginfo ADD COLUMN AprovalNumber int(11) DEFAULT NULL", () => { });
 });
 
 // ==========================================
