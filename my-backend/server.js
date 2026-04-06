@@ -1,4 +1,5 @@
 // server.js
+require('dotenv').config(); // Load environment variables from .env file
 const express = require('express');
 const mysql = require('mysql2');
 const cors = require('cors');
@@ -45,7 +46,7 @@ db.connect((err) => {
     });
 });
 
-// --- SIGNUP ROUTE ---
+// --- SIGNUP ROUTE (Your existing code) ---
 app.post('/signup', async (req, res) => {
     const { username, email, password } = req.body;
     try {
@@ -67,7 +68,7 @@ app.post('/signup', async (req, res) => {
     }
 });
 
-// --- LOGIN ROUTE ---
+// --- LOGIN ROUTE (Your existing code) ---
 app.post('/login', (req, res) => {
     const { email, password } = req.body;
     db.query('SELECT * FROM users WHERE email = ?', [email], async (err, results) => {
@@ -83,6 +84,73 @@ app.post('/login', (req, res) => {
         res.status(200).json({ message: 'Login successful', user: { id: user.id, username: user.username, email: user.email } });
     });
 });
+
+
+// =================================================================
+// --- CLIENT PROVIDED CRUD ROUTES (Adapted for your Database) ---
+// =================================================================
+
+// Get all users
+app.get('/users', (req, res) => {
+    db.query('SELECT * FROM users', (err, results) => {
+        if (err) throw err;
+        res.json(results);
+    });
+});
+
+// Get a user by ID
+app.get('/users/:id', (req, res) => {
+    const { id } = req.params;
+    db.query('SELECT * FROM users WHERE id = ?', [id], (err, results) => {
+        if (err) throw err;
+        res.json(results[0]);
+    });
+});
+
+// Create a new user (Adapted to hash password so they can log in via React)
+app.post('/users', async (req, res) => {
+    const { username, email, password } = req.body;
+    try {
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        db.query('INSERT INTO users (username, email, password) VALUES (?, ?, ?)', [username, email, hashedPassword], (err, result) => {
+            if (err) throw err;
+            res.json({ message: 'User added successfully', id: result.insertId });
+        });
+    } catch (error) {
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Update a user (Adapted to hash the new password)
+app.put('/users/:id', async (req, res) => {
+    const { id } = req.params;
+    const { email, password } = req.body;
+
+    try {
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        db.query('UPDATE users SET email = ?, password = ? WHERE id = ?', [email, hashedPassword, id], (err) => {
+            if (err) throw err;
+            res.json({ message: 'User updated successfully' });
+        });
+    } catch (error) {
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Delete a user
+app.delete('/users/:id', (req, res) => {
+    const { id } = req.params;
+    db.query('DELETE FROM users WHERE id = ?', [id], (err) => {
+        if (err) throw err;
+        res.json({ message: 'User deleted successfully' });
+    });
+});
+
+// =================================================================
 
 // Use dynamic port for Render
 const PORT = process.env.PORT || 5000;
