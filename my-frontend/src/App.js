@@ -6,10 +6,9 @@ import Navbar from './layouts/Navbar';
 import Dashboard from './pages/Dashboard';
 import Maintenance from './pages/Maintenance';
 import AccountSettings from './pages/AccountSettings';
-import Login from './pages/Login'; // Import the new login page
+import Login from './pages/Login';
 
 const App = () => {
-  // Dummy authentication state
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const styles = {
@@ -26,24 +25,25 @@ const App = () => {
       display: 'flex',
       flexDirection: 'column',
       height: '100vh',
+      minWidth: 0, // <--- MAGIC FIX 1: Stops the right side from growing past the screen
     },
     contentArea: {
       padding: '0 24px 24px 24px',
       overflowY: 'auto',
-      flex: 1
+      overflowX: 'hidden', // <--- MAGIC FIX 2: Hides the master horizontal scrollbar
+      flex: 1,
+      minWidth: 0, // <--- MAGIC FIX 3: Forces the inner content to stay within bounds
     }
   };
 
   return (
     <BrowserRouter>
       <Routes>
-        {/* Unauthenticated Route: Only shows the Login card */}
         <Route
           path="/login"
           element={<Login onLogin={() => setIsAuthenticated(true)} />}
         />
 
-        {/* Authenticated Routes: Wrapped inside your layout structure */}
         <Route path="*" element={
           isAuthenticated ? (
             <div style={styles.appContainer}>
@@ -52,7 +52,6 @@ const App = () => {
                 <Navbar />
                 <div style={styles.contentArea}>
                   <Routes>
-                    {/* Dashboard handles the "/" path */}
                     <Route path="/" element={<Dashboard />} />
                     <Route path="/layouts" element={<Maintenance pageName="Layouts" />} />
                     <Route path="/account-settings/account" element={<AccountSettings />} />
@@ -62,7 +61,6 @@ const App = () => {
               </div>
             </div>
           ) : (
-            /* Redirect to login if user tries to access any page while logged out */
             <Navigate to="/login" replace />
           )
         } />

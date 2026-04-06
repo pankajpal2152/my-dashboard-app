@@ -44,19 +44,19 @@ const indianStates = State.getStatesOfCountry('IN').map(state => ({ value: state
 
 // --- 2. STYLES ---
 const styles = {
-    card: { backgroundColor: '#ffffff', borderRadius: '8px', boxShadow: '0 2px 6px 0 rgba(67, 89, 113, 0.12)', fontFamily: '"Public Sans", sans-serif', overflow: 'visible', marginBottom: '24px' },
-    cardHeader: { padding: '24px', borderBottom: '1px solid #d9dee3', fontSize: '1.125rem', fontWeight: '500', color: '#566a7f', margin: 0 },
-    cardBody: { padding: '24px' },
-    profileSection: { display: 'flex', alignItems: 'flex-start', gap: '24px', marginBottom: '32px' },
-    avatar: { width: '100px', height: '100px', borderRadius: '6px', objectFit: 'cover' },
-    buttonGroup: { display: 'flex', gap: '16px', marginBottom: '12px', marginTop: '10px' },
-    btnPrimary: { backgroundColor: '#2b84b8', color: '#fff', border: 'none', borderRadius: '4px', padding: '8px 24px', fontSize: '0.9375rem', fontWeight: '500', cursor: 'pointer', transition: '0.2s' },
-    btnOutline: { backgroundColor: 'transparent', color: '#697a8d', border: '1px solid #d9dee3', borderRadius: '6px', padding: '8px 20px', fontSize: '0.9375rem', fontWeight: '500', cursor: 'pointer', transition: '0.2s' },
-    btnDanger: { backgroundColor: '#ff3e1d', color: '#fff', border: 'none', borderRadius: '6px', padding: '8px 20px', fontSize: '0.9375rem', fontWeight: '500', cursor: 'pointer', transition: '0.2s' },
-    btnSuccess: { backgroundColor: '#71dd37', color: '#fff', border: 'none', borderRadius: '6px', padding: '8px 20px', fontSize: '0.9375rem', fontWeight: '500', cursor: 'pointer', transition: '0.2s' },
+    card: { backgroundColor: '#ffffff', borderRadius: '8px', boxShadow: '0 2px 6px 0 rgba(67, 89, 113, 0.12)', fontFamily: '"Public Sans", sans-serif', overflow: 'hidden', marginBottom: '24px', width: '100%', boxSizing: 'border-box' },
+    cardHeader: { padding: '24px', borderBottom: '1px solid #d9dee3', fontSize: '1.125rem', fontWeight: '500', color: '#566a7f', margin: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' },
+    cardBody: { padding: '24px', width: '100%', boxSizing: 'border-box' },
+    profileSection: { display: 'flex', alignItems: 'flex-start', gap: '24px', marginBottom: '32px', flexWrap: 'wrap' },
+    avatar: { width: '100px', height: '100px', borderRadius: '6px', objectFit: 'cover', flexShrink: 0 },
+    buttonGroup: { display: 'flex', gap: '16px', marginBottom: '12px', marginTop: '10px', flexWrap: 'wrap' },
+    btnPrimary: { backgroundColor: '#2b84b8', color: '#fff', border: 'none', borderRadius: '4px', padding: '8px 24px', fontSize: '0.9375rem', fontWeight: '500', cursor: 'pointer', transition: '0.2s', whiteSpace: 'nowrap' },
+    btnOutline: { backgroundColor: 'transparent', color: '#697a8d', border: '1px solid #d9dee3', borderRadius: '6px', padding: '8px 20px', fontSize: '0.9375rem', fontWeight: '500', cursor: 'pointer', transition: '0.2s', whiteSpace: 'nowrap' },
+    btnDanger: { backgroundColor: '#ff3e1d', color: '#fff', border: 'none', borderRadius: '6px', padding: '8px 20px', fontSize: '0.9375rem', fontWeight: '500', cursor: 'pointer', transition: '0.2s', whiteSpace: 'nowrap' },
+    btnSuccess: { backgroundColor: '#71dd37', color: '#fff', border: 'none', borderRadius: '6px', padding: '8px 20px', fontSize: '0.9375rem', fontWeight: '500', cursor: 'pointer', transition: '0.2s', whiteSpace: 'nowrap' },
     hintText: { color: '#a1acb8', fontSize: '0.8125rem', margin: 0 },
-    formGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' },
-    inputGroup: { display: 'flex', flexDirection: 'column', gap: '8px' },
+    formGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px', marginBottom: '24px' },
+    inputGroup: { display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' },
     label: { fontSize: '0.75rem', fontWeight: '600', color: '#566a7f', textTransform: 'uppercase', letterSpacing: '0.25px' },
     input: (hasError) => ({ padding: '10px 14px', borderRadius: '4px', border: hasError ? '1px solid #ff3e1d' : '1px solid #d9dee3', fontSize: '0.9375rem', color: '#697a8d', outline: 'none', backgroundColor: '#fff', fontFamily: 'inherit', width: '100%', boxSizing: 'border-box' }),
     inputDisabled: { padding: '10px 14px', borderRadius: '4px', border: '1px solid #d9dee3', fontSize: '0.9375rem', color: '#a1acb8', outline: 'none', backgroundColor: '#eceeef', cursor: 'not-allowed', fontFamily: 'inherit', width: '100%', boxSizing: 'border-box' },
@@ -72,22 +72,26 @@ const styles = {
     warningText: { color: '#ffab00', fontSize: '0.875rem', margin: 0 },
     sectionHeader: { fontSize: '1rem', fontWeight: '500', color: '#566a7f', textTransform: 'uppercase', marginBottom: '20px', marginTop: '32px', borderBottom: '2px solid #2b84b8', paddingBottom: '8px' },
 
-    // UPDATED Table Styles to FORCE the scrollbar to show
-    tableContainer: { width: '100%', maxWidth: '100%', overflowX: 'scroll', display: 'block', marginTop: '20px', WebkitOverflowScrolling: 'touch', paddingBottom: '10px' },
-    table: { width: '100%', borderCollapse: 'collapse', minWidth: '1500px' },
-    th: { padding: '12px 16px', textAlign: 'left', backgroundColor: '#f5f5f9', color: '#566a7f', fontWeight: '600', fontSize: '0.875rem', borderBottom: '1px solid #d9dee3', whiteSpace: 'nowrap' },
+    tableContainer: { width: '100%', maxWidth: '100%', overflowX: 'auto', display: 'block', WebkitOverflowScrolling: 'touch' },
+    table: { width: '100%', borderCollapse: 'collapse', minWidth: '1200px' },
+    th: { padding: '12px 16px', textAlign: 'left', backgroundColor: '#f5f5f9', color: '#566a7f', fontWeight: '600', fontSize: '0.875rem', borderBottom: '1px solid #d9dee3', whiteSpace: 'nowrap', cursor: 'pointer', userSelect: 'none' },
     td: { padding: '12px 16px', borderBottom: '1px solid #d9dee3', color: '#697a8d', fontSize: '0.9375rem', whiteSpace: 'nowrap' },
 
-    // Sticky Column Styles
-    stickyLeftTh: { position: 'sticky', left: 0, zIndex: 2, padding: '12px 16px', textAlign: 'left', backgroundColor: '#f5f5f9', color: '#566a7f', fontWeight: '600', fontSize: '0.875rem', borderBottom: '1px solid #d9dee3', whiteSpace: 'nowrap', borderRight: '1px solid #d9dee3' },
+    stickyLeftTh: { position: 'sticky', left: 0, zIndex: 2, padding: '12px 16px', textAlign: 'left', backgroundColor: '#f5f5f9', color: '#566a7f', fontWeight: '600', fontSize: '0.875rem', borderBottom: '1px solid #d9dee3', whiteSpace: 'nowrap', borderRight: '1px solid #d9dee3', cursor: 'pointer', userSelect: 'none' },
     stickyLeftTd: { position: 'sticky', left: 0, zIndex: 1, backgroundColor: '#ffffff', padding: '12px 16px', borderBottom: '1px solid #d9dee3', color: '#697a8d', fontSize: '0.9375rem', whiteSpace: 'nowrap', borderRight: '1px solid #d9dee3' },
     stickyRightTh: { position: 'sticky', right: 0, zIndex: 2, padding: '12px 16px', textAlign: 'left', backgroundColor: '#f5f5f9', color: '#566a7f', fontWeight: '600', fontSize: '0.875rem', borderBottom: '1px solid #d9dee3', whiteSpace: 'nowrap', borderLeft: '1px solid #d9dee3' },
     stickyRightTd: { position: 'sticky', right: 0, zIndex: 1, backgroundColor: '#ffffff', padding: '12px 16px', borderBottom: '1px solid #d9dee3', color: '#697a8d', fontSize: '0.9375rem', whiteSpace: 'nowrap', borderLeft: '1px solid #d9dee3' },
 
     actionBtn: { background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem', margin: '0 4px', color: '#697a8d' },
     modalOverlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 10000, padding: '20px' },
-    modalContent: { backgroundColor: '#fff', padding: '30px', borderRadius: '8px', width: '100%', maxWidth: '800px', maxHeight: '90vh', overflowY: 'auto', position: 'relative' },
-    closeBtn: { position: 'absolute', top: '20px', right: '20px', background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: '#a1acb8' }
+    modalContent: { backgroundColor: '#fff', padding: '30px', borderRadius: '8px', width: '100%', maxWidth: '800px', maxHeight: '90vh', overflowY: 'auto', position: 'relative', boxSizing: 'border-box' },
+    closeBtn: { position: 'absolute', top: '15px', right: '15px', background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: '#a1acb8' },
+
+    // Pagination Styles
+    paginationContainer: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', borderTop: '1px solid #d9dee3', flexWrap: 'wrap', gap: '10px', color: '#697a8d', fontSize: '0.875rem', backgroundColor: '#fff' },
+    pageSelect: { padding: '4px 8px', borderRadius: '4px', border: '1px solid #d9dee3', color: '#697a8d', cursor: 'pointer', outline: 'none' },
+    pageBtn: { padding: '6px 12px', marginLeft: '8px', border: '1px solid #d9dee3', backgroundColor: '#fff', borderRadius: '4px', cursor: 'pointer', color: '#697a8d' },
+    pageBtnDisabled: { padding: '6px 12px', marginLeft: '8px', border: '1px solid #d9dee3', backgroundColor: '#f5f5f9', borderRadius: '4px', cursor: 'not-allowed', color: '#a1acb8' }
 };
 
 const FormInput = ({ label, id, error, placeholder, disabled, ...props }) => (
@@ -206,7 +210,9 @@ const AccountTab = () => {
         <>
             <ToastContainer autoClose={3000} pauseOnHover={false} />
             <div style={styles.card}>
-                <h5 style={styles.cardHeader}>New General Member</h5>
+                <div style={styles.cardHeader}>
+                    <h5>New General Member</h5>
+                </div>
                 <div style={styles.cardBody}>
                     <div style={styles.profileSection}>
                         <img src={profileImage} alt="Profile Avatar" style={styles.avatar} />
@@ -325,7 +331,9 @@ const AccountTab = () => {
             <MembersTable refreshTrigger={refreshTrigger} />
 
             <div style={styles.card}>
-                <h5 style={styles.cardHeader}>Delete Account</h5>
+                <div style={styles.cardHeader}>
+                    <h5>Delete Account</h5>
+                </div>
                 <div style={styles.cardBody}>
                     <div style={styles.warningBox}>
                         <h6 style={styles.warningTitle}>Are you sure you want to delete your account?</h6>
@@ -348,11 +356,18 @@ const AccountTab = () => {
 };
 
 // ==========================================
-// DATA TABLE COMPONENT (View, Edit, Delete, Approve)
+// DATA TABLE COMPONENT (View, Edit, Delete, Approve, Pagination & Sorting)
 // ==========================================
 const MembersTable = ({ refreshTrigger }) => {
     const [members, setMembers] = useState([]);
     const [loading, setLoading] = useState(true);
+
+    // Pagination States
+    const [currentPage, setCurrentPage] = useState(1);
+    const [rowsPerPage, setRowsPerPage] = useState(5);
+
+    // Sorting State
+    const [sortConfig, setSortConfig] = useState(null);
 
     // Modal States
     const [viewModal, setViewModal] = useState(false);
@@ -379,8 +394,66 @@ const MembersTable = ({ refreshTrigger }) => {
         fetchMembers();
     }, [refreshTrigger]);
 
+    // Sorting Logic
+    const sortedMembers = React.useMemo(() => {
+        let sortableItems = [...members];
+        if (sortConfig !== null) {
+            sortableItems.sort((a, b) => {
+                let aVal = a[sortConfig.key];
+                let bVal = b[sortConfig.key];
+
+                if (aVal === null || aVal === undefined) aVal = '';
+                if (bVal === null || bVal === undefined) bVal = '';
+
+                // Handle text comparisons safely without breaking numbers
+                if (typeof aVal === 'string') aVal = aVal.toLowerCase();
+                if (typeof bVal === 'string') bVal = bVal.toLowerCase();
+
+                if (aVal < bVal) return sortConfig.direction === 'ascending' ? -1 : 1;
+                if (aVal > bVal) return sortConfig.direction === 'ascending' ? 1 : -1;
+                return 0;
+            });
+        }
+        return sortableItems;
+    }, [members, sortConfig]);
+
+    const requestSort = (key) => {
+        let direction = 'ascending';
+        if (sortConfig && sortConfig.key === key && sortConfig.direction === 'ascending') {
+            direction = 'descending';
+        }
+        setSortConfig({ key, direction });
+    };
+
+    const getSortIcon = (columnName) => {
+        if (!sortConfig || sortConfig.key !== columnName) {
+            return <span style={{ opacity: 0.3, marginLeft: '4px' }}>↕</span>;
+        }
+        return sortConfig.direction === 'ascending' ? <span style={{ marginLeft: '4px' }}>▲</span> : <span style={{ marginLeft: '4px' }}>▼</span>;
+    };
+
+    // Pagination Logic
+    const totalPages = Math.max(1, Math.ceil(sortedMembers.length / rowsPerPage));
+
+    useEffect(() => {
+        // Reset to page 1 if data shrinks and we are on a non-existent page
+        if (currentPage > totalPages) setCurrentPage(1);
+    }, [sortedMembers.length, totalPages, currentPage]);
+
+    const indexOfLastMember = currentPage * rowsPerPage;
+    const indexOfFirstMember = indexOfLastMember - rowsPerPage;
+    const currentMembers = sortedMembers.slice(indexOfFirstMember, indexOfLastMember);
+
+    const handleNextPage = () => setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+    const handlePrevPage = () => setCurrentPage((prev) => Math.max(prev - 1, 1));
+    const handleRowsChange = (e) => {
+        setRowsPerPage(Number(e.target.value));
+        setCurrentPage(1); // Reset to page 1 when changing rows per page
+    };
+
+    // Modal Actions
     const openModal = (type, member) => {
-        setSelectedRow({ ...member }); // Clone the object
+        setSelectedRow({ ...member });
         if (type === 'view') setViewModal(true);
         if (type === 'edit') setEditModal(true);
         if (type === 'delete') setDeleteModal(true);
@@ -449,8 +522,20 @@ const MembersTable = ({ refreshTrigger }) => {
         } catch (error) { toast.dismiss('approve'); toast.error("Network error."); }
     };
 
+    // Helper to render sortable headers
+    const renderTh = (label, key, isStickyLeft = false, isStickyRight = false) => {
+        let thStyle = { ...styles.th };
+        if (isStickyLeft) thStyle = { ...styles.stickyLeftTh };
+        if (isStickyRight) thStyle = { ...styles.stickyRightTh };
+
+        return (
+            <th style={thStyle} onClick={() => requestSort(key)}>
+                {label} {getSortIcon(key)}
+            </th>
+        );
+    };
+
     return (
-        // ADDED OVERFLOW: HIDDEN to the outer card to stop the page from stretching!
         <div style={{ ...styles.card, overflow: 'hidden' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '24px 24px 0 24px' }}>
                 <h5 style={styles.cardHeader}>Registered Members List</h5>
@@ -459,66 +544,101 @@ const MembersTable = ({ refreshTrigger }) => {
 
             <div style={styles.cardBody}>
                 {loading ? <p>Loading data...</p> : (
-                    <div style={styles.tableContainer}>
-                        <table style={styles.table}>
-                            <thead>
-                                <tr>
-                                    {/* STICKY LEFT HEADER */}
-                                    <th style={styles.stickyLeftTh}>ID</th>
+                    <>
+                        <div style={styles.tableContainer}>
+                            <table style={styles.table}>
+                                <thead>
+                                    <tr>
+                                        {/* STICKY LEFT HEADER */}
+                                        {renderTh('ID', 'RegInfoId', true, false)}
 
-                                    {/* SCROLLABLE MIDDLE HEADERS */}
-                                    <th style={styles.th}>Profile Image</th>
-                                    <th style={styles.th}>Approval ID</th>
-                                    <th style={styles.th}>Full Name</th>
-                                    <th style={styles.th}>Mobile No</th>
-                                    <th style={styles.th}>Email</th>
-                                    <th style={styles.th}>Status</th>
-                                    <th style={styles.th}>DOB</th>
-                                    <th style={styles.th}>Aadhar</th>
-                                    <th style={styles.th}>PAN</th>
-                                    <th style={styles.th}>City</th>
-                                    <th style={styles.th}>Joining Amt</th>
+                                        {/* SCROLLABLE MIDDLE HEADERS */}
+                                        {renderTh('Profile Image', 'ProfileImage')}
+                                        {renderTh('Approval ID', 'AprovalNumber')}
+                                        {renderTh('Full Name', 'PerName')}
+                                        {renderTh('Mobile No', 'ContactNo')}
+                                        {renderTh('Email', 'MailId')}
+                                        {renderTh('Status', 'Status')}
+                                        {renderTh('DOB', 'DOB')}
+                                        {renderTh('Aadhar', 'AadharNo')}
+                                        {renderTh('PAN', 'PanNo')}
+                                        {renderTh('City', 'City')}
+                                        {renderTh('Joining Amt', 'JoiningAmt')}
 
-                                    {/* STICKY RIGHT HEADER */}
-                                    <th style={styles.stickyRightTh}>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {members.map((row) => (
-                                    <tr key={row.RegInfoId}>
-                                        {/* STICKY LEFT DATA */}
-                                        <td style={styles.stickyLeftTd}>#{row.RegInfoId}</td>
-
-                                        {/* SCROLLABLE MIDDLE DATA */}
-                                        <td style={styles.td}>
-                                            <img src={row.ProfileImage || DUMMY_AVATAR} alt="User" style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }} />
-                                        </td>
-                                        <td style={styles.td}>{row.AprovalNumber || 'Pending'}</td>
-                                        <td style={styles.td}>{row.PerName}</td>
-                                        <td style={styles.td}>{row.ContactNo}</td>
-                                        <td style={styles.td}>{row.MailId}</td>
-                                        <td style={{ ...styles.td, color: row.Status === 2 ? 'green' : 'orange', fontWeight: 'bold' }}>{row.Status === 2 ? 'Approved' : 'Pending'}</td>
-                                        <td style={styles.td}>{row.DOB ? row.DOB.substring(0, 10) : ''}</td>
-                                        <td style={styles.td}>{row.AadharNo}</td>
-                                        <td style={styles.td}>{row.PanNo}</td>
-                                        <td style={styles.td}>{row.City || row.Village}</td>
-                                        <td style={styles.td}>₹{row.JoiningAmt}</td>
-
-                                        {/* STICKY RIGHT DATA */}
-                                        <td style={styles.stickyRightTd}>
-                                            <button onClick={() => openModal('view', row)} style={styles.actionBtn} title="View">👁️</button>
-                                            <button onClick={() => openModal('edit', row)} style={styles.actionBtn} title="Edit">✏️</button>
-                                            <button onClick={() => openModal('delete', row)} style={styles.actionBtn} title="Delete">🗑️</button>
-                                            {row.Status !== 2 && (
-                                                <button onClick={() => openModal('approve', row)} style={styles.actionBtn} title="Approve">✅</button>
-                                            )}
-                                        </td>
+                                        {/* STICKY RIGHT HEADER */}
+                                        <th style={styles.stickyRightTh}>Actions</th>
                                     </tr>
-                                ))}
-                                {members.length === 0 && <tr><td colSpan="13" style={{ ...styles.td, textAlign: 'center' }}>No members found in database.</td></tr>}
-                            </tbody>
-                        </table>
-                    </div>
+                                </thead>
+                                <tbody>
+                                    {currentMembers.map((row) => (
+                                        <tr key={row.RegInfoId}>
+                                            {/* STICKY LEFT DATA */}
+                                            <td style={styles.stickyLeftTd}>#{row.RegInfoId}</td>
+
+                                            {/* SCROLLABLE MIDDLE DATA */}
+                                            <td style={styles.td}>
+                                                <img src={row.ProfileImage || DUMMY_AVATAR} alt="User" style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }} />
+                                            </td>
+                                            <td style={styles.td}>{row.AprovalNumber || 'Pending'}</td>
+                                            <td style={styles.td}>{row.PerName}</td>
+                                            <td style={styles.td}>{row.ContactNo}</td>
+                                            <td style={styles.td}>{row.MailId}</td>
+                                            <td style={{ ...styles.td, color: row.Status === 2 ? 'green' : 'orange', fontWeight: 'bold' }}>{row.Status === 2 ? 'Approved' : 'Pending'}</td>
+                                            <td style={styles.td}>{row.DOB ? row.DOB.substring(0, 10) : ''}</td>
+                                            <td style={styles.td}>{row.AadharNo}</td>
+                                            <td style={styles.td}>{row.PanNo}</td>
+                                            <td style={styles.td}>{row.City || row.Village}</td>
+                                            <td style={styles.td}>₹{row.JoiningAmt}</td>
+
+                                            {/* STICKY RIGHT DATA */}
+                                            <td style={styles.stickyRightTd}>
+                                                <button onClick={() => openModal('view', row)} style={styles.actionBtn} title="View">👁️</button>
+                                                <button onClick={() => openModal('edit', row)} style={styles.actionBtn} title="Edit">✏️</button>
+                                                <button onClick={() => openModal('delete', row)} style={styles.actionBtn} title="Delete">🗑️</button>
+                                                {row.Status !== 2 && (
+                                                    <button onClick={() => openModal('approve', row)} style={styles.actionBtn} title="Approve">✅</button>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    {currentMembers.length === 0 && <tr><td colSpan="13" style={{ ...styles.td, textAlign: 'center' }}>No members found in database.</td></tr>}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {/* --- PAGINATION CONTROLS --- */}
+                        <div style={styles.paginationContainer}>
+                            <div>
+                                <span>Rows per page: </span>
+                                <select value={rowsPerPage} onChange={handleRowsChange} style={styles.pageSelect}>
+                                    <option value={5}>5</option>
+                                    <option value={10}>10</option>
+                                    <option value={20}>20</option>
+                                    <option value={50}>50</option>
+                                </select>
+                            </div>
+                            <div>
+                                <span style={{ marginRight: '16px' }}>
+                                    Showing {sortedMembers.length === 0 ? 0 : indexOfFirstMember + 1} to {Math.min(indexOfLastMember, sortedMembers.length)} of {sortedMembers.length}
+                                </span>
+                                <button
+                                    onClick={handlePrevPage}
+                                    disabled={currentPage === 1}
+                                    style={currentPage === 1 ? styles.pageBtnDisabled : styles.pageBtn}
+                                >
+                                    Prev
+                                </button>
+                                <span style={{ margin: '0 12px' }}>Page {currentPage} of {totalPages}</span>
+                                <button
+                                    onClick={handleNextPage}
+                                    disabled={currentPage === totalPages || totalPages === 0}
+                                    style={(currentPage === totalPages || totalPages === 0) ? styles.pageBtnDisabled : styles.pageBtn}
+                                >
+                                    Next
+                                </button>
+                            </div>
+                        </div>
+                    </>
                 )}
             </div>
 
@@ -528,7 +648,7 @@ const MembersTable = ({ refreshTrigger }) => {
                     <div style={styles.modalContent}>
                         <button style={styles.closeBtn} onClick={closeModal}>×</button>
                         <h4 style={{ marginTop: 0 }}>View Member Details</h4>
-                        <div style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
+                        <div style={{ display: 'flex', gap: '20px', marginBottom: '20px', flexWrap: 'wrap' }}>
                             <img src={selectedRow.ProfileImage || DUMMY_AVATAR} alt="Profile" style={{ width: '100px', height: '100px', borderRadius: '8px', objectFit: 'cover' }} />
                             <div>
                                 <p><strong>Name:</strong> {selectedRow.PerName}</p>
@@ -595,7 +715,7 @@ const MembersTable = ({ refreshTrigger }) => {
                     <div style={{ ...styles.modalContent, maxWidth: '400px', textAlign: 'center' }}>
                         <h4 style={{ marginTop: 0, color: '#ff3e1d' }}>Confirm Delete</h4>
                         <p>Are you sure you want to completely delete <strong>{selectedRow.PerName}</strong>? This action cannot be undone.</p>
-                        <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '20px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '20px', flexWrap: 'wrap' }}>
                             <button onClick={closeModal} style={styles.btnOutline}>Cancel</button>
                             <button onClick={confirmDelete} style={styles.btnDanger}>Yes, Delete</button>
                         </div>
@@ -610,7 +730,7 @@ const MembersTable = ({ refreshTrigger }) => {
                         <h4 style={{ marginTop: 0, color: '#71dd37' }}>Approve Member</h4>
                         <p>Are you sure you want to approve <strong>{selectedRow.PerName}</strong>?</p>
                         <p style={{ fontSize: '0.85rem', color: '#a1acb8' }}>This will generate a permanent 12-digit Approval ID.</p>
-                        <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '20px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '20px', flexWrap: 'wrap' }}>
                             <button onClick={closeModal} style={styles.btnOutline}>Cancel</button>
                             <button onClick={confirmApprove} style={styles.btnSuccess}>Confirm Approval</button>
                         </div>
