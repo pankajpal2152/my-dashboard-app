@@ -4,7 +4,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import Select from 'react-select';
-import { State } from 'country-state-city';
+import { State, City } from 'country-state-city';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -14,14 +14,14 @@ const indianZipRegex = /^[1-9][0-9]{5}$/;
 const indianPhoneRegex = /^(?:\+91[\s]?|91[\s]?)?[6789]\d{9}$/;
 
 const accountSchema = z.object({
-    joiningAmount: z.object({ value: z.string(), label: z.string() }).nullable().refine(val => val !== null, "Required"),
+    joiningAmount: z.string().min(1, "Joining Amount is required"),
     walletBalance: z.string().optional(),
     fullName: z.string().min(2, "Min 2 characters").max(50, "Max 50 characters").regex(/^[a-zA-Z\s]+$/, "Letters only"),
     sdwOf: z.string().optional(),
     dob: z.string().min(1, "Date of Birth is required"),
     nomineeName: z.string().optional(),
     state: z.object({ value: z.string(), label: z.string() }).nullable().optional(),
-    district: z.string().optional(),
+    district: z.object({ value: z.string(), label: z.string() }).nullable().optional(),
     city: z.string().optional(),
     block: z.string().optional(),
     postOffice: z.string().optional(),
@@ -41,7 +41,6 @@ const accountSchema = z.object({
 });
 
 const indianStates = State.getStatesOfCountry('IN').map(state => ({ value: state.isoCode, label: state.name }));
-const joiningAmountOptions = [{ value: '5', label: '5' }, { value: '100', label: '100' }, { value: '500', label: '500' }, { value: '1000', label: '1000' }];
 
 // --- 2. STYLES ---
 const styles = {
@@ -85,18 +84,23 @@ const AccountTab = () => {
     const [profileImage, setProfileImage] = useState(DUMMY_AVATAR);
     const fileInputRef = useRef(null);
 
-    const { control, handleSubmit, register, reset, formState: { errors } } = useForm({
+    const { control, handleSubmit, register, reset, watch, formState: { errors } } = useForm({
         resolver: zodResolver(accountSchema),
         mode: 'onChange',
         defaultValues: {
-            joiningAmount: { value: '5', label: '5' },
+            joiningAmount: '',
             walletBalance: '0',
             fullName: '', sdwOf: '', dob: '', nomineeName: '',
-            state: null, district: '', city: '', block: '', postOffice: '', policeStation: '', gramPanchayet: '', village: '', pinCode: '', mobileNo: '', email: '',
+            state: null, district: null, city: '', block: '', postOffice: '', policeStation: '', gramPanchayet: '', village: '', pinCode: '', mobileNo: '', email: '',
             bankName: '', branchName: '', accountNo: '', ifsCode: '', panNo: '', aadharNo: '',
             deactivateConfirm: false
         }
     });
+
+    const selectedState = watch("state");
+    const districtOptions = selectedState
+        ? City.getCitiesOfState('IN', selectedState.value).map(city => ({ value: city.name, label: city.name }))
+        : [];
 
     const handleUploadClick = () => fileInputRef.current.click();
     const handleFileChange = (event) => {
@@ -113,16 +117,16 @@ const AccountTab = () => {
         fileInputRef.current.value = "";
     };
 
-    // --- UPDATED Form Submission to Connect to Backend ---
     const onSubmit = async (data) => {
-        // Map React Hook Form data directly to Client's MySQL Database Columns
+        // Build payload including the base64 profile image string
         const dbPayload = {
+            ProfileImage: profileImage === DUMMY_AVATAR ? null : profileImage, // Send null if they didn't upload a custom photo
             PerName: data.fullName,
             FathersName: data.sdwOf || "",
             DOB: data.dob,
             NomineeName: data.nomineeName || "",
-            StateId: 36, // Hardcoded mapping for West Bengal based on client DB
-            DistId: 1, // Dummy ID mapping
+            StateId: 36,
+            DistId: 1,
             BlockName: data.block || "",
             PO: data.postOffice || "",
             PS: data.policeStation || "",
@@ -136,9 +140,12 @@ const AccountTab = () => {
             IFSCode: data.ifsCode || "",
             PanNo: data.panNo || "",
             AadharNo: data.aadharNo,
-            JoiningAmt: parseInt(data.joiningAmount?.value) || 0,
+            JoiningAmt: parseInt(data.joiningAmount) || 0,
             WalletBalance: parseInt(data.walletBalance) || 0,
-            ActStatus: 1
+            Status: 1,
+            AprovedBy: null,
+            AprovalDate: null,
+            AprovalNumber: null
         };
 
         try {
@@ -154,7 +161,8 @@ const AccountTab = () => {
 
             if (response.ok) {
                 toast.success("Success: Data saved to Cloud Database!", { position: "top-right" });
-                reset(); // Clears form on success
+                reset();
+                setProfileImage(DUMMY_AVATAR); // Reset image UI after successful save
             } else {
                 toast.error("Failed to save data. Check backend logs.", { position: "top-right" });
             }
@@ -193,15 +201,20 @@ const AccountTab = () => {
                     <form onSubmit={handleSubmit(onSubmit, onError)}>
                         <h6 style={styles.sectionHeader}>Sponsor Information <span style={{ color: '#ff3e1d', textTransform: 'none' }}>(Member ID : )</span></h6>
                         <div style={styles.formGrid}>
-                            <div style={styles.inputGroup}>
-                                <label style={styles.label}>Joining Amount <span style={{ color: '#ff3e1d' }}>*</span></label>
-                                <Controller name="joiningAmount" control={control} render={({ field }) => (
-                                    <Select {...field} options={joiningAmountOptions} styles={styles.selectStyles(!!errors.joiningAmount)} placeholder="Select..." />
-                                )} />
-                                {errors.joiningAmount && <p style={styles.errorText}>{errors.joiningAmount.message}</p>}
-                            </div>
+
+                            <Controller name="joiningAmount" control={control} render={({ field }) => (
+                                <FormInput
+                                    label={<>Joining Amount <span style={{ color: '#ff3e1d' }}>*</span></>}
+                                    id="joiningAmount"
+                                    error={errors.joiningAmount}
+                                    placeholder="Enter Amount"
+                                    type="number"
+                                    {...field}
+                                />
+                            )} />
+
                             <Controller name="walletBalance" control={control} render={({ field }) => (
-                                <FormInput label={<>Wallet Balance <span style={{ color: '#ff3e1d' }}>*</span></>} id="walletBalance" error={errors.walletBalance} disabled={true} {...field} />
+                                <FormInput label={<>Wallet Balance <span style={{ color: '#ff3e1d' }}>*</span></>} id="walletBalance" error={errors.walletBalance} disabled={true} readOnly {...field} />
                             )} />
                         </div>
 
@@ -230,9 +243,21 @@ const AccountTab = () => {
                                 )} />
                                 {errors.state && <p style={styles.errorText}>{errors.state.message}</p>}
                             </div>
-                            <Controller name="district" control={control} render={({ field }) => (
-                                <FormInput label="District" id="district" error={errors.district} placeholder="District" type="text" maxLength={50} {...field} />
-                            )} />
+
+                            <div style={styles.inputGroup}>
+                                <label style={styles.label}>District</label>
+                                <Controller name="district" control={control} render={({ field }) => (
+                                    <Select
+                                        {...field}
+                                        options={districtOptions}
+                                        styles={styles.selectStyles(!!errors.district)}
+                                        placeholder="Select District"
+                                        isDisabled={!selectedState}
+                                    />
+                                )} />
+                                {errors.district && <p style={styles.errorText}>{errors.district.message}</p>}
+                            </div>
+
                             <Controller name="city" control={control} render={({ field }) => (
                                 <FormInput label="City" id="city" error={errors.city} placeholder="City" type="text" maxLength={50} {...field} />
                             )} />

@@ -22,13 +22,13 @@ const AccountSettings = () => {
     return (
         <div style={styles.container}>
             {/* Page Title */}
-            <h4 style={styles.breadcrumb}>
-                Account Settings / <span style={styles.breadcrumbActive}>Account</span>
-            </h4>
+            {/* <h4 style={styles.breadcrumb}>
+                New <span style={styles.breadcrumbActive}>General Member</span>
+            </h4> */}
 
             {/* Navigation Tabs */}
-            <div style={styles.tabsContainer}>
-                <button style={styles.tab(true)}>
+            {/* <div style={styles.tabsContainer}> */}
+                {/* <button style={styles.tab(true)}>
                     <span style={{ fontSize: '18px' }}>👤</span> Account
                 </button>
                 <button style={styles.tab(false)}>
@@ -36,8 +36,8 @@ const AccountSettings = () => {
                 </button>
                 <button style={styles.tab(false)}>
                     <span style={{ fontSize: '18px' }}>🔗</span> Connections
-                </button>
-            </div>
+                </button> */}
+            {/* </div> */}
 
             {/* Main Content Area */}
             <AccountTab />

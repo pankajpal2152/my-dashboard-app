@@ -31,10 +31,39 @@ db.connect((err) => {
     }
     console.log('Connected to Cloud MySQL database.');
 
-    // Auto-create original users table
-    db.query(`CREATE TABLE IF NOT EXISTS users (id INT AUTO_INCREMENT PRIMARY KEY, username VARCHAR(255) NOT NULL, email VARCHAR(255) NOT NULL UNIQUE, password VARCHAR(255) NOT NULL)`);
+    // 1. Auto-create users table
+    db.query(`CREATE TABLE IF NOT EXISTS users (id INT AUTO_INCREMENT PRIMARY KEY, role VARCHAR(100) NOT NULL, username VARCHAR(255) NOT NULL, email VARCHAR(255) NOT NULL UNIQUE, password VARCHAR(255) NOT NULL)`);
 
-    // Auto-create Client's reginfo table
+    // 2. Add 'role' column if missing
+    db.query("ALTER TABLE users ADD COLUMN role VARCHAR(100) DEFAULT 'State Super Administrator' AFTER id", () => { });
+
+    // 3. Auto-create userinfo table (Client requested)
+    const createUserInfoTable = `
+        CREATE TABLE IF NOT EXISTS userinfo (
+          UserInfoId int(11) NOT NULL AUTO_INCREMENT,
+          UserType varchar(50) DEFAULT NULL,
+          UserRole varchar(20) DEFAULT NULL,
+          ActStatus int(1) DEFAULT 1,
+          PRIMARY KEY (UserInfoId)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `;
+    db.query(createUserInfoTable, (err) => {
+        if (!err) {
+            db.query('SELECT COUNT(*) AS count FROM userinfo', (err, rows) => {
+                if (!err && rows[0].count === 0) {
+                    const insertUsers = `INSERT INTO userinfo(UserType,UserRole,ActStatus) VALUES 
+                    ('State Super Administrator','Admin',1),
+                    ('District Administrator','Admin',1),
+                    ('Supervisor','General',1),
+                    ('Astha Didi','General',1)`;
+                    db.query(insertUsers);
+                    console.log("Inserted default roles into userinfo.");
+                }
+            });
+        }
+    });
+
+    // 4. Auto-create Client's reginfo table (UPDATED SCHEMA)
     const createRegInfoTable = `
         CREATE TABLE IF NOT EXISTS reginfo (
             RegInfoId int(11) NOT NULL AUTO_INCREMENT,
@@ -48,7 +77,9 @@ db.connect((err) => {
             BranchName varchar(30) DEFAULT NULL, AcctNo varchar(30) DEFAULT NULL,
             IFSCode varchar(15) DEFAULT NULL, PanNo varchar(20) DEFAULT NULL,
             AadharNo varchar(15) DEFAULT NULL, JoiningAmt int(11) DEFAULT NULL,
-            WalletBalance int(11) DEFAULT NULL, ActStatus int(1) DEFAULT 1,
+            WalletBalance int(11) DEFAULT NULL, Status int(1) DEFAULT 1,
+            AprovedBy int(11) DEFAULT NULL, AprovalDate date DEFAULT NULL,
+            AprovalNumber int(11) DEFAULT NULL,
             PRIMARY KEY (RegInfoId)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     `;
@@ -59,17 +90,17 @@ db.connect((err) => {
 });
 
 // ==========================================
-// 1. ORIGINAL LOGIN & SIGNUP ROUTES
+// 1. AUTHENTICATION (LOGIN & SIGNUP WITH ROLE)
 // ==========================================
 app.post('/signup', async (req, res) => {
-    const { username, email, password } = req.body;
+    const { role, username, email, password } = req.body;
     try {
         db.query('SELECT * FROM users WHERE email = ?', [email], async (err, results) => {
             if (err) return res.status(500).json({ error: 'Database error' });
             if (results.length > 0) return res.status(400).json({ error: 'Email already exists' });
             const salt = await bcrypt.genSalt(10);
             const hashedPassword = await bcrypt.hash(password, salt);
-            db.query('INSERT INTO users (username, email, password) VALUES (?, ?, ?)', [username, email, hashedPassword], (err, result) => {
+            db.query('INSERT INTO users (role, username, email, password) VALUES (?, ?, ?, ?)', [role, username, email, hashedPassword], (err, result) => {
                 if (err) return res.status(500).json({ error: 'Failed to register' });
                 res.status(201).json({ message: 'User registered successfully!' });
             });
@@ -85,12 +116,22 @@ app.post('/login', (req, res) => {
         const user = results[0];
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) return res.status(400).json({ error: 'Incorrect password' });
-        res.status(200).json({ message: 'Login successful', user: { id: user.id, username: user.username, email: user.email } });
+        res.status(200).json({ message: 'Login successful', user: { id: user.id, role: user.role, username: user.username, email: user.email } });
     });
 });
 
 // ==========================================
-// 2. CLIENT REGINFO API (AccountTab Form)
+// 2. CLIENT USERINFO API (For Dropdowns)
+// ==========================================
+app.get('/userinfo', (req, res) => {
+    db.query('SELECT * FROM userinfo WHERE ActStatus = 1', (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(results);
+    });
+});
+
+// ==========================================
+// 3. CLIENT REGINFO API
 // ==========================================
 app.get('/RegInfo', (req, res) => {
     db.query('SELECT * FROM reginfo', (err, results) => {
@@ -108,10 +149,9 @@ app.get('/RegInfo/:RegInfoId', (req, res) => {
 });
 
 app.post('/RegInfo', (req, res) => {
-    const { PerName, FathersName, DOB, NomineeName, StateId, DistId, BlockName, PO, PS, Village, Pincode, ContactNo, MailId, BankName, BranchName, AcctNo, IFSCode, PanNo, AadharNo, JoiningAmt, WalletBalance, ActStatus } = req.body;
-    const insertQuery = 'INSERT INTO reginfo (PerName,FathersName,DOB,NomineeName,StateId,DistId,BlockName,PO,PS,Village,Pincode,ContactNo,MailId,BankName,BranchName,AcctNo,IFSCode,PanNo,AadharNo,JoiningAmt,WalletBalance,ActStatus) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)';
-
-    db.query(insertQuery, [PerName, FathersName, DOB, NomineeName, StateId, DistId, BlockName, PO, PS, Village, Pincode, ContactNo, MailId, BankName, BranchName, AcctNo, IFSCode, PanNo, AadharNo, JoiningAmt, WalletBalance, ActStatus], (err, result) => {
+    const { PerName, FathersName, DOB, NomineeName, StateId, DistId, BlockName, PO, PS, Village, Pincode, ContactNo, MailId, BankName, BranchName, AcctNo, IFSCode, PanNo, AadharNo, JoiningAmt, WalletBalance, Status, AprovedBy, AprovalDate, AprovalNumber } = req.body;
+    const insertQuery = 'INSERT INTO reginfo (PerName,FathersName,DOB,NomineeName,StateId,DistId,BlockName,PO,PS,Village,Pincode,ContactNo,MailId,BankName,BranchName,AcctNo,IFSCode,PanNo,AadharNo,JoiningAmt,WalletBalance,Status,AprovedBy,AprovalDate,AprovalNumber) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)';
+    db.query(insertQuery, [PerName, FathersName, DOB, NomineeName, StateId, DistId, BlockName, PO, PS, Village, Pincode, ContactNo, MailId, BankName, BranchName, AcctNo, IFSCode, PanNo, AadharNo, JoiningAmt, WalletBalance, Status, AprovedBy, AprovalDate, AprovalNumber], (err, result) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json({ message: 'User added successfully', id: result.insertId });
     });
@@ -119,10 +159,9 @@ app.post('/RegInfo', (req, res) => {
 
 app.put('/RegInfo/:RegInfoId', (req, res) => {
     const { RegInfoId } = req.params;
-    const { PerName, FathersName, DOB, NomineeName, StateId, DistId, BlockName, PO, PS, Village, Pincode, ContactNo, MailId, BankName, BranchName, AcctNo, IFSCode, PanNo, AadharNo, JoiningAmt, WalletBalance, ActStatus } = req.body;
-    const updateQuery = 'UPDATE reginfo SET PerName=?, FathersName=?, DOB=?, NomineeName=?, StateId=?, DistId=?, BlockName=?, PO=?, PS=?, Village=?, Pincode=?, ContactNo=?, MailId=?, BankName=?, BranchName=?, AcctNo=?, IFSCode=?, PanNo=?, AadharNo=?, JoiningAmt=?, WalletBalance=?, ActStatus=? WHERE RegInfoId=?';
-
-    db.query(updateQuery, [PerName, FathersName, DOB, NomineeName, StateId, DistId, BlockName, PO, PS, Village, Pincode, ContactNo, MailId, BankName, BranchName, AcctNo, IFSCode, PanNo, AadharNo, JoiningAmt, WalletBalance, ActStatus, RegInfoId], (err) => {
+    const { PerName, FathersName, DOB, NomineeName, StateId, DistId, BlockName, PO, PS, Village, Pincode, ContactNo, MailId, BankName, BranchName, AcctNo, IFSCode, PanNo, AadharNo, JoiningAmt, WalletBalance, Status, AprovedBy, AprovalDate, AprovalNumber } = req.body;
+    const updateQuery = 'UPDATE reginfo SET PerName=?, FathersName=?, DOB=?, NomineeName=?, StateId=?, DistId=?, BlockName=?, PO=?, PS=?, Village=?, Pincode=?, ContactNo=?, MailId=?, BankName=?, BranchName=?, AcctNo=?, IFSCode=?, PanNo=?, AadharNo=?, JoiningAmt=?, WalletBalance=?, Status=?, AprovedBy=?, AprovalDate=?, AprovalNumber=? WHERE RegInfoId=?';
+    db.query(updateQuery, [PerName, FathersName, DOB, NomineeName, StateId, DistId, BlockName, PO, PS, Village, Pincode, ContactNo, MailId, BankName, BranchName, AcctNo, IFSCode, PanNo, AadharNo, JoiningAmt, WalletBalance, Status, AprovedBy, AprovalDate, AprovalNumber, RegInfoId], (err) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json({ message: 'User updated successfully' });
     });
@@ -133,24 +172,6 @@ app.delete('/RegInfo/:RegInfoId', (req, res) => {
     db.query('DELETE FROM reginfo WHERE RegInfoId = ?', [RegInfoId], (err) => {
         if (err) throw err;
         res.json({ message: 'User deleted successfully' });
-    });
-});
-
-// ==========================================
-// 3. CLIENT USERSREGINFO API
-// ==========================================
-app.get('/usersreginfo', (req, res) => {
-    db.query('SELECT * FROM usersreginfo', (err, results) => {
-        if (err) throw err;
-        res.json(results);
-    });
-});
-
-app.post('/usersreginfo', (req, res) => {
-    const { UsersRole, UsersRegName, UsersRegMailId, UsersRegPassword } = req.body;
-    db.query('INSERT INTO usersreginfo (UsersRole,UsersRegName,UsersRegMailId,UsersRegPassword) VALUES (?, ?, ?, ?)', [UsersRole, UsersRegName, UsersRegMailId, UsersRegPassword], (err, result) => {
-        if (err) throw err;
-        res.json({ message: 'User added successfully', UsersRegId: result.insertId });
     });
 });
 

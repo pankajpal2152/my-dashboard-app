@@ -73,7 +73,7 @@ const Sidebar = () => {
                 {/* ACCOUNT SETTINGS (Collapsible Parent) */}
                 <li style={styles.menuItem(false)} onClick={() => setIsAccountMenuOpen(!isAccountMenuOpen)}>
                     <div style={styles.menuItemLeft}>
-                        <span style={{ marginRight: '10px' }}>⚙️</span> Account Settings
+                        <span style={{ marginRight: '10px' }}></span>  Entry Section
                     </div>
                     <span style={styles.chevron}>▶</span>
                 </li>
@@ -83,24 +83,24 @@ const Sidebar = () => {
                     <NavLink to="/account-settings/account" style={styles.link}>
                         {({ isActive }) => (
                             <li style={styles.subMenuItem(isActive)}>
-                                <div style={styles.subMenuDot(isActive)}></div> Account
+                                <div style={styles.subMenuDot(isActive)}></div> Member Entry
                             </li>
                         )}
                     </NavLink>
-                    <NavLink to="/account-settings/notifications" style={styles.link}>
+                    {/* <NavLink to="/account-settings/notifications" style={styles.link}>
                         {({ isActive }) => (
                             <li style={styles.subMenuItem(isActive)}>
                                 <div style={styles.subMenuDot(isActive)}></div> Notifications
                             </li>
                         )}
-                    </NavLink>
-                    <NavLink to="/account-settings/connections" style={styles.link}>
+                    </NavLink> */}
+                    {/* <NavLink to="/account-settings/connections" style={styles.link}>
                         {({ isActive }) => (
                             <li style={styles.subMenuItem(isActive)}>
                                 <div style={styles.subMenuDot(isActive)}></div> Connections
                             </li>
                         )}
-                    </NavLink>
+                    </NavLink> */}
                 </div>
             </ul>
         </aside>

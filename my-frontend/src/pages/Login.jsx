@@ -1,5 +1,5 @@
 // src/pages/Login.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 // --- SHARED STYLES ---
@@ -14,7 +14,7 @@ const styles = {
     labelContainer: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' },
     label: { fontSize: '0.75rem', fontWeight: '600', color: '#566a7f', textTransform: 'uppercase', letterSpacing: '0.25px' },
     linkText: { fontSize: '0.8125rem', color: '#696cff', textDecoration: 'none', cursor: 'pointer' },
-    input: { width: '100%', padding: '10px 14px', borderRadius: '6px', border: '1px solid #d9dee3', fontSize: '0.9375rem', color: '#697a8d', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit', transition: 'border-color 0.2s' },
+    input: { width: '100%', padding: '10px 14px', borderRadius: '6px', border: '1px solid #d9dee3', fontSize: '0.9375rem', color: '#697a8d', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit', transition: 'border-color 0.2s', backgroundColor: '#fff' },
     passwordContainer: { position: 'relative', display: 'flex', alignItems: 'center' },
     eyeIcon: { position: 'absolute', right: '14px', cursor: 'pointer', color: '#a1acb8', backgroundColor: 'transparent', border: 'none', padding: 0, display: 'flex' },
     checkboxContainer: { display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px' },
@@ -41,7 +41,6 @@ const LoginForm = ({ onLogin, onToggleView }) => {
         }
 
         try {
-            // Updated to use your live Render URL
             const response = await fetch('https://my-dashboard-app-ky8v.onrender.com/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -51,7 +50,8 @@ const LoginForm = ({ onLogin, onToggleView }) => {
             const data = await response.json();
 
             if (response.ok) {
-                alert("Login Successful!");
+                localStorage.setItem('loggedInUser', JSON.stringify(data.user));
+                alert(`Login Successful! Welcome, ${data.user.username}`);
                 onLogin();
                 navigate('/');
             } else {
@@ -69,7 +69,7 @@ const LoginForm = ({ onLogin, onToggleView }) => {
                 <img src="/logo.png" alt="App Logo" style={styles.logoImage} />
             </div>
             <h3 style={styles.welcomeText}>Welcome! 👋</h3>
-            <p style={styles.subText}>Please sign-in to your account and start the adventure</p>
+            <p style={styles.subText}>Please sign in to your account and start the Astha Didi Project</p>
 
             <form onSubmit={handleSubmit}>
                 <div style={styles.formGroup}>
@@ -111,19 +111,28 @@ const LoginForm = ({ onLogin, onToggleView }) => {
 // --- 2. SIGNUP COMPONENT ---
 const SignupForm = ({ onSignup, onToggleView }) => {
     const [showPassword, setShowPassword] = useState(false);
-    const [credentials, setCredentials] = useState({ username: '', email: '', password: '' });
+    const [roles, setRoles] = useState([]);
+    const [credentials, setCredentials] = useState({ role: '', username: '', email: '', password: '' });
+
+    // Fetch Roles dynamically from database userinfo table
+    useEffect(() => {
+        fetch('https://my-dashboard-app-ky8v.onrender.com/userinfo')
+            .then(res => res.json())
+            .then(data => setRoles(data))
+            .catch(err => console.error("Error fetching roles: ", err));
+    }, []);
 
     const handleChange = (e) => setCredentials({ ...credentials, [e.target.name]: e.target.value });
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!credentials.username || !credentials.email || !credentials.password) {
-            alert("Please fill in all fields to sign up.");
+
+        if (!credentials.role || !credentials.username || !credentials.email || !credentials.password) {
+            alert("Please fill in all fields and select a role to sign up.");
             return;
         }
 
         try {
-            // Updated to use your live Render URL
             const response = await fetch('https://my-dashboard-app-ky8v.onrender.com/signup', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -134,7 +143,7 @@ const SignupForm = ({ onSignup, onToggleView }) => {
 
             if (response.ok) {
                 alert("Account created successfully! You can now log in.");
-                onToggleView(); // Switch back to login view automatically
+                onToggleView();
             } else {
                 alert("Error: " + data.error);
             }
@@ -150,12 +159,38 @@ const SignupForm = ({ onSignup, onToggleView }) => {
                 <img src="/logo.png" alt="App Logo" style={styles.logoImage} />
             </div>
             <h3 style={styles.welcomeText}>Adventure starts here 🚀</h3>
-            <p style={styles.subText}>Make your app management easy and fun!</p>
+            <p style={styles.subText}>Astha Didi Project</p>
 
             <form onSubmit={handleSubmit}>
                 <div style={styles.formGroup}>
+                    <label htmlFor="role" style={styles.label}>Select Role</label>
+                    <select
+                        id="role"
+                        name="role"
+                        style={{ ...styles.input, marginTop: '8px', paddingRight: '30px', cursor: 'pointer' }}
+                        value={credentials.role}
+                        onChange={handleChange}
+                    >
+                        <option value="" disabled>Select your role...</option>
+                        {roles.length > 0 ? (
+                            roles.map((r) => (
+                                <option key={r.UserInfoId} value={r.UserType}>{r.UserType}</option>
+                            ))
+                        ) : (
+                            // Fallback if network is slow
+                            <>
+                                <option value="State Super Administrator">State Super Administrator</option>
+                                <option value="District Administrator">District Administrator</option>
+                                <option value="Supervisor">Supervisor</option>
+                                <option value="Astha Didi">Astha Didi</option>
+                            </>
+                        )}
+                    </select>
+                </div>
+
+                <div style={styles.formGroup}>
                     <label htmlFor="username" style={styles.label}>Username</label>
-                    <input type="text" id="username" name="username" placeholder="Enter your username" style={{ ...styles.input, marginTop: '8px' }} value={credentials.username} onChange={handleChange} autoFocus />
+                    <input type="text" id="username" name="username" placeholder="Enter your username" style={{ ...styles.input, marginTop: '8px' }} value={credentials.username} onChange={handleChange} />
                 </div>
 
                 <div style={styles.formGroup}>
@@ -178,7 +213,7 @@ const SignupForm = ({ onSignup, onToggleView }) => {
                 </div>
 
                 <div style={styles.checkboxContainer}>
-                    <input type="checkbox" id="terms" style={styles.checkbox} />
+                    <input type="checkbox" id="terms" style={styles.checkbox} required />
                     <label htmlFor="terms" style={styles.checkboxLabel}>
                         I agree to <span style={styles.linkText}>privacy policy & terms</span>
                     </label>
