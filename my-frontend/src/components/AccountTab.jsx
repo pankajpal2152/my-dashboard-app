@@ -118,9 +118,8 @@ const AccountTab = () => {
     };
 
     const onSubmit = async (data) => {
-        // Build payload including the base64 profile image string
         const dbPayload = {
-            ProfileImage: profileImage === DUMMY_AVATAR ? null : profileImage, // Send null if they didn't upload a custom photo
+            ProfileImage: profileImage === DUMMY_AVATAR ? null : profileImage,
             PerName: data.fullName,
             FathersName: data.sdwOf || "",
             DOB: data.dob,
@@ -162,7 +161,7 @@ const AccountTab = () => {
             if (response.ok) {
                 toast.success("Success: Data saved to Cloud Database!", { position: "top-right" });
                 reset();
-                setProfileImage(DUMMY_AVATAR); // Reset image UI after successful save
+                setProfileImage(DUMMY_AVATAR);
             } else {
                 toast.error("Failed to save data. Check backend logs.", { position: "top-right" });
             }
