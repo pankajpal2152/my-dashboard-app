@@ -77,6 +77,13 @@ const styles = {
     table: { width: '100%', borderCollapse: 'collapse', minWidth: '1500px' },
     th: { padding: '12px 16px', textAlign: 'left', backgroundColor: '#f5f5f9', color: '#566a7f', fontWeight: '600', fontSize: '0.875rem', borderBottom: '1px solid #d9dee3', whiteSpace: 'nowrap' },
     td: { padding: '12px 16px', borderBottom: '1px solid #d9dee3', color: '#697a8d', fontSize: '0.9375rem', whiteSpace: 'nowrap' },
+
+    // Sticky Column Styles
+    stickyLeftTh: { position: 'sticky', left: 0, zIndex: 2, padding: '12px 16px', textAlign: 'left', backgroundColor: '#f5f5f9', color: '#566a7f', fontWeight: '600', fontSize: '0.875rem', borderBottom: '1px solid #d9dee3', whiteSpace: 'nowrap', borderRight: '1px solid #d9dee3' },
+    stickyLeftTd: { position: 'sticky', left: 0, zIndex: 1, backgroundColor: '#ffffff', padding: '12px 16px', borderBottom: '1px solid #d9dee3', color: '#697a8d', fontSize: '0.9375rem', whiteSpace: 'nowrap', borderRight: '1px solid #d9dee3' },
+    stickyRightTh: { position: 'sticky', right: 0, zIndex: 2, padding: '12px 16px', textAlign: 'left', backgroundColor: '#f5f5f9', color: '#566a7f', fontWeight: '600', fontSize: '0.875rem', borderBottom: '1px solid #d9dee3', whiteSpace: 'nowrap', borderLeft: '1px solid #d9dee3' },
+    stickyRightTd: { position: 'sticky', right: 0, zIndex: 1, backgroundColor: '#ffffff', padding: '12px 16px', borderBottom: '1px solid #d9dee3', color: '#697a8d', fontSize: '0.9375rem', whiteSpace: 'nowrap', borderLeft: '1px solid #d9dee3' },
+
     actionBtn: { background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem', margin: '0 4px', color: '#697a8d' },
     modalOverlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 10000, padding: '20px' },
     modalContent: { backgroundColor: '#fff', padding: '30px', borderRadius: '8px', width: '100%', maxWidth: '800px', maxHeight: '90vh', overflowY: 'auto', position: 'relative' },
@@ -97,7 +104,7 @@ const FormInput = ({ label, id, error, placeholder, disabled, ...props }) => (
 const AccountTab = () => {
     const [profileImage, setProfileImage] = useState(DUMMY_AVATAR);
     const fileInputRef = useRef(null);
-    const [refreshTrigger, setRefreshTrigger] = useState(0); // Trigger to refresh the table
+    const [refreshTrigger, setRefreshTrigger] = useState(0);
 
     const { control, handleSubmit, register, reset, watch, formState: { errors } } = useForm({
         resolver: zodResolver(accountSchema),
@@ -177,7 +184,7 @@ const AccountTab = () => {
                 toast.success("Success: Data saved to Cloud Database!", { position: "top-right" });
                 reset();
                 setProfileImage(DUMMY_AVATAR);
-                setRefreshTrigger(prev => prev + 1); // Refresh the table
+                setRefreshTrigger(prev => prev + 1);
             } else {
                 toast.error("Failed to save data. Check backend logs.", { position: "top-right" });
             }
@@ -422,7 +429,6 @@ const MembersTable = ({ refreshTrigger }) => {
     const confirmApprove = async () => {
         try {
             toast.loading("Approving...", { toastId: 'approve' });
-            // Generate 12 digit random number
             const approvalId = Math.floor(100000000000 + Math.random() * 900000000000);
             const dateStr = new Date().toISOString().split('T')[0];
 
@@ -436,7 +442,7 @@ const MembersTable = ({ refreshTrigger }) => {
 
             toast.dismiss('approve');
             if (res.ok) {
-                toast.success(`Approved! ID: ${approvalId}`, { autoClose: false }); // Keep open so they can read it
+                toast.success(`Approved! ID: ${approvalId}`, { autoClose: false });
                 closeModal();
                 fetchMembers();
             } else toast.error("Failed to approve.");
@@ -456,8 +462,10 @@ const MembersTable = ({ refreshTrigger }) => {
                         <table style={styles.table}>
                             <thead>
                                 <tr>
-                                    <th style={styles.th}>ID</th>
-                                    <th style={styles.th}>Actions</th>
+                                    {/* STICKY LEFT HEADER */}
+                                    <th style={styles.stickyLeftTh}>ID</th>
+
+                                    {/* SCROLLABLE MIDDLE HEADERS */}
                                     <th style={styles.th}>Profile Image</th>
                                     <th style={styles.th}>Approval ID</th>
                                     <th style={styles.th}>Full Name</th>
@@ -469,20 +477,18 @@ const MembersTable = ({ refreshTrigger }) => {
                                     <th style={styles.th}>PAN</th>
                                     <th style={styles.th}>City</th>
                                     <th style={styles.th}>Joining Amt</th>
+
+                                    {/* STICKY RIGHT HEADER */}
+                                    <th style={styles.stickyRightTh}>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {members.map((row) => (
                                     <tr key={row.RegInfoId}>
-                                        <td style={styles.td}>#{row.RegInfoId}</td>
-                                        <td style={styles.td}>
-                                            <button onClick={() => openModal('view', row)} style={styles.actionBtn} title="View">👁️</button>
-                                            <button onClick={() => openModal('edit', row)} style={styles.actionBtn} title="Edit">✏️</button>
-                                            <button onClick={() => openModal('delete', row)} style={styles.actionBtn} title="Delete">🗑️</button>
-                                            {row.Status !== 2 && (
-                                                <button onClick={() => openModal('approve', row)} style={styles.actionBtn} title="Approve">✅</button>
-                                            )}
-                                        </td>
+                                        {/* STICKY LEFT DATA */}
+                                        <td style={styles.stickyLeftTd}>#{row.RegInfoId}</td>
+
+                                        {/* SCROLLABLE MIDDLE DATA */}
                                         <td style={styles.td}>
                                             <img src={row.ProfileImage || DUMMY_AVATAR} alt="User" style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }} />
                                         </td>
@@ -496,6 +502,16 @@ const MembersTable = ({ refreshTrigger }) => {
                                         <td style={styles.td}>{row.PanNo}</td>
                                         <td style={styles.td}>{row.City || row.Village}</td>
                                         <td style={styles.td}>₹{row.JoiningAmt}</td>
+
+                                        {/* STICKY RIGHT DATA */}
+                                        <td style={styles.stickyRightTd}>
+                                            <button onClick={() => openModal('view', row)} style={styles.actionBtn} title="View">👁️</button>
+                                            <button onClick={() => openModal('edit', row)} style={styles.actionBtn} title="Edit">✏️</button>
+                                            <button onClick={() => openModal('delete', row)} style={styles.actionBtn} title="Delete">🗑️</button>
+                                            {row.Status !== 2 && (
+                                                <button onClick={() => openModal('approve', row)} style={styles.actionBtn} title="Approve">✅</button>
+                                            )}
+                                        </td>
                                     </tr>
                                 ))}
                                 {members.length === 0 && <tr><td colSpan="13" style={{ ...styles.td, textAlign: 'center' }}>No members found in database.</td></tr>}
