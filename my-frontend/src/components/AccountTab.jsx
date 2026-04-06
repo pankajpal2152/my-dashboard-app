@@ -17,7 +17,7 @@ const DUMMY_AVATAR = "https://api.dicebear.com/8.x/initials/svg?seed=Rajesh&back
 const indianZipRegex = /^[1-9][0-9]{5}$/; // 6 digits, cannot start with 0
 const indianPhoneRegex = /^(?:\+91[\s]?|91[\s]?)?[6789]\d{9}$/; // Standard Indian Mobile pattern
 
-// Zod Validation Schema (Updated to match the new form design)
+// Zod Validation Schema
 const accountSchema = z.object({
     joiningAmount: z.object({ value: z.string(), label: z.string() }).nullable().refine(val => val !== null, "Required"),
     walletBalance: z.string().optional(),
@@ -28,10 +28,14 @@ const accountSchema = z.object({
     state: z.object({ value: z.string(), label: z.string() }).nullable().optional(),
     district: z.string().optional(),
     city: z.string().optional(),
+    block: z.string().optional(),
+    postOffice: z.string().optional(),
+    policeStation: z.string().optional(),
+    gramPanchayet: z.string().optional(),
+    village: z.string().optional(),
+    pinCode: z.string().regex(indianZipRegex, "Valid 6-digit Pincode required").length(6, "Must be exactly 6 digits"),
     mobileNo: z.string().regex(indianPhoneRegex, "Valid Indian phone required"),
     email: z.string().email("Please enter a valid email address").max(100, "Max 100 characters"),
-    pinCode: z.string().regex(indianZipRegex, "Valid 6-digit Pincode required").length(6, "Must be exactly 6 digits"),
-    address: z.string().min(5, "Address is required").max(200, "Max 200 characters"),
     bankName: z.string().optional(),
     branchName: z.string().optional(),
     accountNo: z.string().optional(),
@@ -86,15 +90,6 @@ const FormInput = ({ label, id, error, placeholder, disabled, ...props }) => (
     </div>
 );
 
-// Custom Textarea Component
-const FormTextarea = ({ label, id, error, placeholder, disabled, ...props }) => (
-    <div style={styles.inputGroup}>
-        <label htmlFor={id} style={styles.label}>{label}</label>
-        <textarea id={id} style={{ ...(disabled ? styles.inputDisabled : styles.input(!!error)), minHeight: '100px', resize: 'vertical' }} placeholder={placeholder} disabled={disabled} {...props} />
-        {error && <p style={styles.errorText}>{error.message}</p>}
-    </div>
-);
-
 const AccountTab = () => {
     const [profileImage, setProfileImage] = useState(DUMMY_AVATAR);
     const fileInputRef = useRef(null);
@@ -106,7 +101,7 @@ const AccountTab = () => {
             joiningAmount: { value: '5', label: '5' },
             walletBalance: '0',
             fullName: '', sdwOf: '', dob: '', nomineeName: '',
-            state: null, district: '', city: '', mobileNo: '', email: '', pinCode: '', address: '',
+            state: null, district: '', city: '', block: '', postOffice: '', policeStation: '', gramPanchayet: '', village: '', pinCode: '', mobileNo: '', email: '',
             bankName: '', branchName: '', accountNo: '', ifsCode: '', panNo: '', aadharNo: '',
             deactivateConfirm: false
         }
@@ -223,17 +218,29 @@ const AccountTab = () => {
                             <Controller name="city" control={control} render={({ field }) => (
                                 <FormInput label="City" id="city" error={errors.city} placeholder="City" type="text" maxLength={50} {...field} />
                             )} />
-                            <Controller name="mobileNo" control={control} render={({ field }) => (
-                                <FormInput label={<>Mobile No. <span style={{ color: '#ff3e1d' }}>*</span></>} id="mobileNo" error={errors.mobileNo} placeholder="Mobile No." type="tel" maxLength={15} {...field} />
+                            <Controller name="block" control={control} render={({ field }) => (
+                                <FormInput label="Block" id="block" error={errors.block} placeholder="Block" type="text" maxLength={50} {...field} />
                             )} />
-                            <Controller name="email" control={control} render={({ field }) => (
-                                <FormInput label={<>Email <span style={{ color: '#ff3e1d' }}>*</span></>} id="email" error={errors.email} placeholder="Email ID" type="email" maxLength={100} {...field} />
+                            <Controller name="postOffice" control={control} render={({ field }) => (
+                                <FormInput label="Post Office" id="postOffice" error={errors.postOffice} placeholder="Post Office" type="text" maxLength={50} {...field} />
+                            )} />
+                            <Controller name="policeStation" control={control} render={({ field }) => (
+                                <FormInput label="Police Station" id="policeStation" error={errors.policeStation} placeholder="Police Station" type="text" maxLength={50} {...field} />
+                            )} />
+                            <Controller name="gramPanchayet" control={control} render={({ field }) => (
+                                <FormInput label="Gram Panchayet" id="gramPanchayet" error={errors.gramPanchayet} placeholder="Gram Panchayet" type="text" maxLength={50} {...field} />
+                            )} />
+                            <Controller name="village" control={control} render={({ field }) => (
+                                <FormInput label="Village" id="village" error={errors.village} placeholder="Village" type="text" maxLength={50} {...field} />
                             )} />
                             <Controller name="pinCode" control={control} render={({ field }) => (
                                 <FormInput label={<>Pin Code <span style={{ color: '#ff3e1d' }}>*</span></>} id="pinCode" error={errors.pinCode} placeholder="Pincode" type="text" maxLength={6} {...field} />
                             )} />
-                            <Controller name="address" control={control} render={({ field }) => (
-                                <FormTextarea label={<>Address <span style={{ color: '#ff3e1d' }}>*</span></>} id="address" error={errors.address} placeholder="Full Address" maxLength={200} {...field} />
+                            <Controller name="mobileNo" control={control} render={({ field }) => (
+                                <FormInput label={<>Contact Number <span style={{ color: '#ff3e1d' }}>*</span></>} id="mobileNo" error={errors.mobileNo} placeholder="Mobile No." type="tel" maxLength={15} {...field} />
+                            )} />
+                            <Controller name="email" control={control} render={({ field }) => (
+                                <FormInput label={<>Email ID <span style={{ color: '#ff3e1d' }}>*</span></>} id="email" error={errors.email} placeholder="Email ID" type="email" maxLength={100} {...field} />
                             )} />
                         </div>
 
