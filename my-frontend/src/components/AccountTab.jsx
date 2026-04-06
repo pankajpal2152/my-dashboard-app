@@ -9,15 +9,10 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 // --- 1. DATA & CONFIGURATION ---
-
-// Dummy Initial Avatar
 const DUMMY_AVATAR = "https://api.dicebear.com/8.x/initials/svg?seed=Rajesh&backgroundColor=696cff";
+const indianZipRegex = /^[1-9][0-9]{5}$/;
+const indianPhoneRegex = /^(?:\+91[\s]?|91[\s]?)?[6789]\d{9}$/;
 
-// Regex Patterns for Indian Validation
-const indianZipRegex = /^[1-9][0-9]{5}$/; // 6 digits, cannot start with 0
-const indianPhoneRegex = /^(?:\+91[\s]?|91[\s]?)?[6789]\d{9}$/; // Standard Indian Mobile pattern
-
-// Zod Validation Schema
 const accountSchema = z.object({
     joiningAmount: z.object({ value: z.string(), label: z.string() }).nullable().refine(val => val !== null, "Required"),
     walletBalance: z.string().optional(),
@@ -45,10 +40,7 @@ const accountSchema = z.object({
     deactivateConfirm: z.boolean().optional()
 });
 
-// Dynamic Data Fetching
 const indianStates = State.getStatesOfCountry('IN').map(state => ({ value: state.isoCode, label: state.name }));
-
-// Dummy option for Joining Amount
 const joiningAmountOptions = [{ value: '5', label: '5' }, { value: '100', label: '100' }, { value: '500', label: '500' }, { value: '1000', label: '1000' }];
 
 // --- 2. STYLES ---
@@ -81,7 +73,6 @@ const styles = {
     sectionHeader: { fontSize: '1rem', fontWeight: '500', color: '#566a7f', textTransform: 'uppercase', marginBottom: '20px', marginTop: '32px', borderBottom: '2px solid #2b84b8', paddingBottom: '8px' }
 };
 
-// Custom Input Component to keep code clean
 const FormInput = ({ label, id, error, placeholder, disabled, ...props }) => (
     <div style={styles.inputGroup}>
         <label htmlFor={id} style={styles.label}>{label}</label>
@@ -94,7 +85,7 @@ const AccountTab = () => {
     const [profileImage, setProfileImage] = useState(DUMMY_AVATAR);
     const fileInputRef = useRef(null);
 
-    const { control, handleSubmit, register, formState: { errors } } = useForm({
+    const { control, handleSubmit, register, reset, formState: { errors } } = useForm({
         resolver: zodResolver(accountSchema),
         mode: 'onChange',
         defaultValues: {
@@ -107,52 +98,83 @@ const AccountTab = () => {
         }
     });
 
-    // --- Image Handling ---
     const handleUploadClick = () => fileInputRef.current.click();
     const handleFileChange = (event) => {
         const file = event.target.files[0];
         if (file) {
-            if (file.size > 800000) { // 800KB limit
-                toast.warning("Image size exceeds 800K. Please upload a smaller file.", { position: "top-center" });
-                return;
-            }
+            if (file.size > 800000) return toast.warning("Image size exceeds 800K.");
             const reader = new FileReader();
-            reader.onloadend = () => {
-                setProfileImage(reader.result);
-                toast.success("Profile picture updated locally.", { position: "top-right" });
-            };
+            reader.onloadend = () => setProfileImage(reader.result);
             reader.readAsDataURL(file);
         }
     };
     const handleResetImage = () => {
         setProfileImage(DUMMY_AVATAR);
         fileInputRef.current.value = "";
-        toast.info("Profile picture reset.", { position: "top-right" });
     };
 
-    // --- Form Submission ---
-    const onSubmit = (data) => {
-        console.log("Saving Data to Backend:", data);
-        toast.success("Success: Member details submitted successfully!", { position: "top-right" });
+    // --- UPDATED Form Submission to Connect to Backend ---
+    const onSubmit = async (data) => {
+        // Map React Hook Form data directly to Client's MySQL Database Columns
+        const dbPayload = {
+            PerName: data.fullName,
+            FathersName: data.sdwOf || "",
+            DOB: data.dob,
+            NomineeName: data.nomineeName || "",
+            StateId: 36, // Hardcoded mapping for West Bengal based on client DB
+            DistId: 1, // Dummy ID mapping
+            BlockName: data.block || "",
+            PO: data.postOffice || "",
+            PS: data.policeStation || "",
+            Village: data.village || "",
+            Pincode: parseInt(data.pinCode),
+            ContactNo: data.mobileNo,
+            MailId: data.email,
+            BankName: data.bankName || "",
+            BranchName: data.branchName || "",
+            AcctNo: data.accountNo || "0",
+            IFSCode: data.ifsCode || "",
+            PanNo: data.panNo || "",
+            AadharNo: data.aadharNo,
+            JoiningAmt: parseInt(data.joiningAmount?.value) || 0,
+            WalletBalance: parseInt(data.walletBalance) || 0,
+            ActStatus: 1
+        };
+
+        try {
+            toast.loading("Saving to database...", { toastId: 'saving' });
+
+            const response = await fetch('https://my-dashboard-app-ky8v.onrender.com/RegInfo', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dbPayload)
+            });
+
+            toast.dismiss('saving');
+
+            if (response.ok) {
+                toast.success("Success: Data saved to Cloud Database!", { position: "top-right" });
+                reset(); // Clears form on success
+            } else {
+                toast.error("Failed to save data. Check backend logs.", { position: "top-right" });
+            }
+        } catch (error) {
+            toast.dismiss('saving');
+            toast.error("Network error. Could not reach server.", { position: "top-right" });
+            console.error(error);
+        }
     };
 
-    const onError = () => {
-        toast.error("Error: Please check the red fields in the form.", { position: "top-right" });
-    };
+    const onError = () => toast.error("Error: Please check the red fields.", { position: "top-right" });
 
     const onDeactivate = (data) => {
-        if (!data.deactivateConfirm) {
-            toast.warning("Please confirm account deactivation by checking the box.", { position: "top-center" });
-            return;
-        }
-        toast.error("Account Deactivated successfully. Logging out...", { position: "top-center" });
+        if (!data.deactivateConfirm) return toast.warning("Please confirm deactivation.");
+        toast.error("Account Deactivated successfully. Logging out...");
     };
 
     return (
         <>
             <ToastContainer autoClose={3000} pauseOnHover={false} />
-
-            {/* --- TOP CARD: PROFILE DETAILS --- */}
             <div style={styles.card}>
                 <h5 style={styles.cardHeader}>New General Member</h5>
                 <div style={styles.cardBody}>
@@ -160,8 +182,8 @@ const AccountTab = () => {
                         <img src={profileImage} alt="Profile Avatar" style={styles.avatar} />
                         <div>
                             <div style={styles.buttonGroup}>
-                                <button style={styles.btnOutline} onClick={handleUploadClick} onMouseOver={(e) => e.target.style.backgroundColor = '#f5f5f9'} onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}>Upload new photo</button>
-                                <button style={styles.btnOutline} onClick={handleResetImage} onMouseOver={(e) => e.target.style.backgroundColor = '#f5f5f9'} onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}>Reset</button>
+                                <button type="button" style={styles.btnOutline} onClick={handleUploadClick}>Upload new photo</button>
+                                <button type="button" style={styles.btnOutline} onClick={handleResetImage}>Reset</button>
                                 <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/png, image/jpeg, image/gif" style={{ display: 'none' }} />
                             </div>
                             <p style={styles.hintText}>Allowed JPG, GIF or PNG. Max size of 800K</p>
@@ -169,8 +191,6 @@ const AccountTab = () => {
                     </div>
 
                     <form onSubmit={handleSubmit(onSubmit, onError)}>
-
-                        {/* --- SPONSOR INFORMATION --- */}
                         <h6 style={styles.sectionHeader}>Sponsor Information <span style={{ color: '#ff3e1d', textTransform: 'none' }}>(Member ID : )</span></h6>
                         <div style={styles.formGrid}>
                             <div style={styles.inputGroup}>
@@ -185,7 +205,6 @@ const AccountTab = () => {
                             )} />
                         </div>
 
-                        {/* --- PERSONAL DETAILS --- */}
                         <h6 style={styles.sectionHeader}>Personal Details</h6>
                         <div style={styles.formGrid}>
                             <Controller name="fullName" control={control} render={({ field }) => (
@@ -202,7 +221,6 @@ const AccountTab = () => {
                             )} />
                         </div>
 
-                        {/* --- POSTAL ADDRESS INFORMATION --- */}
                         <h6 style={styles.sectionHeader}>Postal Address Information</h6>
                         <div style={styles.formGrid}>
                             <div style={styles.inputGroup}>
@@ -244,7 +262,6 @@ const AccountTab = () => {
                             )} />
                         </div>
 
-                        {/* --- BANKING & PAYMENT DETAILS --- */}
                         <h6 style={styles.sectionHeader}>Banking & Payment Details</h6>
                         <div style={styles.formGrid}>
                             <Controller name="bankName" control={control} render={({ field }) => (
@@ -268,13 +285,12 @@ const AccountTab = () => {
                         </div>
 
                         <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '32px' }}>
-                            <button type="submit" style={styles.btnPrimary} onMouseOver={(e) => e.target.style.backgroundColor = '#236b96'} onMouseOut={(e) => e.target.style.backgroundColor = '#2b84b8'}>Submit</button>
+                            <button type="submit" style={styles.btnPrimary}>Submit</button>
                         </div>
                     </form>
                 </div>
             </div>
 
-            {/* --- BOTTOM CARD: DELETE ACCOUNT --- */}
             <div style={styles.card}>
                 <h5 style={styles.cardHeader}>Delete Account</h5>
                 <div style={styles.cardBody}>
@@ -290,7 +306,7 @@ const AccountTab = () => {
                                 I confirm my account deactivation
                             </label>
                         </div>
-                        <button type="submit" style={styles.btnDanger} onMouseOver={(e) => e.target.style.backgroundColor = '#e03619'} onMouseOut={(e) => e.target.style.backgroundColor = '#ff3e1d'}>Deactivate Account</button>
+                        <button type="submit" style={styles.btnDanger}>Deactivate Account</button>
                     </form>
                 </div>
             </div>
