@@ -1,5 +1,5 @@
 // src/components/AccountTab.jsx
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -53,12 +53,13 @@ const styles = {
     btnPrimary: { backgroundColor: '#2b84b8', color: '#fff', border: 'none', borderRadius: '4px', padding: '8px 24px', fontSize: '0.9375rem', fontWeight: '500', cursor: 'pointer', transition: '0.2s' },
     btnOutline: { backgroundColor: 'transparent', color: '#697a8d', border: '1px solid #d9dee3', borderRadius: '6px', padding: '8px 20px', fontSize: '0.9375rem', fontWeight: '500', cursor: 'pointer', transition: '0.2s' },
     btnDanger: { backgroundColor: '#ff3e1d', color: '#fff', border: 'none', borderRadius: '6px', padding: '8px 20px', fontSize: '0.9375rem', fontWeight: '500', cursor: 'pointer', transition: '0.2s' },
+    btnSuccess: { backgroundColor: '#71dd37', color: '#fff', border: 'none', borderRadius: '6px', padding: '8px 20px', fontSize: '0.9375rem', fontWeight: '500', cursor: 'pointer', transition: '0.2s' },
     hintText: { color: '#a1acb8', fontSize: '0.8125rem', margin: 0 },
     formGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' },
     inputGroup: { display: 'flex', flexDirection: 'column', gap: '8px' },
     label: { fontSize: '0.75rem', fontWeight: '600', color: '#566a7f', textTransform: 'uppercase', letterSpacing: '0.25px' },
-    input: (hasError) => ({ padding: '10px 14px', borderRadius: '4px', border: hasError ? '1px solid #ff3e1d' : '1px solid #d9dee3', fontSize: '0.9375rem', color: '#697a8d', outline: 'none', backgroundColor: '#fff', fontFamily: 'inherit' }),
-    inputDisabled: { padding: '10px 14px', borderRadius: '4px', border: '1px solid #d9dee3', fontSize: '0.9375rem', color: '#a1acb8', outline: 'none', backgroundColor: '#eceeef', cursor: 'not-allowed', fontFamily: 'inherit' },
+    input: (hasError) => ({ padding: '10px 14px', borderRadius: '4px', border: hasError ? '1px solid #ff3e1d' : '1px solid #d9dee3', fontSize: '0.9375rem', color: '#697a8d', outline: 'none', backgroundColor: '#fff', fontFamily: 'inherit', width: '100%', boxSizing: 'border-box' }),
+    inputDisabled: { padding: '10px 14px', borderRadius: '4px', border: '1px solid #d9dee3', fontSize: '0.9375rem', color: '#a1acb8', outline: 'none', backgroundColor: '#eceeef', cursor: 'not-allowed', fontFamily: 'inherit', width: '100%', boxSizing: 'border-box' },
     errorText: { color: '#ff3e1d', fontSize: '0.75rem', margin: 0, marginTop: '-4px' },
     selectStyles: (hasError) => ({
         control: (base) => ({ ...base, borderColor: hasError ? '#ff3e1d' : '#d9dee3', minHeight: '42px', borderRadius: '4px', boxShadow: 'none', '&:hover': { borderColor: '#2b84b8' } }),
@@ -69,7 +70,17 @@ const styles = {
     warningBox: { backgroundColor: 'rgba(255, 171, 0, 0.16)', padding: '16px', borderRadius: '6px', marginBottom: '16px' },
     warningTitle: { color: '#ffab00', fontSize: '0.9375rem', fontWeight: '600', margin: '0 0 4px 0' },
     warningText: { color: '#ffab00', fontSize: '0.875rem', margin: 0 },
-    sectionHeader: { fontSize: '1rem', fontWeight: '500', color: '#566a7f', textTransform: 'uppercase', marginBottom: '20px', marginTop: '32px', borderBottom: '2px solid #2b84b8', paddingBottom: '8px' }
+    sectionHeader: { fontSize: '1rem', fontWeight: '500', color: '#566a7f', textTransform: 'uppercase', marginBottom: '20px', marginTop: '32px', borderBottom: '2px solid #2b84b8', paddingBottom: '8px' },
+
+    // Table & Modal Styles
+    tableContainer: { overflowX: 'auto', marginTop: '20px' },
+    table: { width: '100%', borderCollapse: 'collapse', minWidth: '1500px' },
+    th: { padding: '12px 16px', textAlign: 'left', backgroundColor: '#f5f5f9', color: '#566a7f', fontWeight: '600', fontSize: '0.875rem', borderBottom: '1px solid #d9dee3', whiteSpace: 'nowrap' },
+    td: { padding: '12px 16px', borderBottom: '1px solid #d9dee3', color: '#697a8d', fontSize: '0.9375rem', whiteSpace: 'nowrap' },
+    actionBtn: { background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem', margin: '0 4px', color: '#697a8d' },
+    modalOverlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 10000, padding: '20px' },
+    modalContent: { backgroundColor: '#fff', padding: '30px', borderRadius: '8px', width: '100%', maxWidth: '800px', maxHeight: '90vh', overflowY: 'auto', position: 'relative' },
+    closeBtn: { position: 'absolute', top: '20px', right: '20px', background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: '#a1acb8' }
 };
 
 const FormInput = ({ label, id, error, placeholder, disabled, ...props }) => (
@@ -80,9 +91,13 @@ const FormInput = ({ label, id, error, placeholder, disabled, ...props }) => (
     </div>
 );
 
+// ==========================================
+// MAIN COMPONENT: ACCOUNT TAB
+// ==========================================
 const AccountTab = () => {
     const [profileImage, setProfileImage] = useState(DUMMY_AVATAR);
     const fileInputRef = useRef(null);
+    const [refreshTrigger, setRefreshTrigger] = useState(0); // Trigger to refresh the table
 
     const { control, handleSubmit, register, reset, watch, formState: { errors } } = useForm({
         resolver: zodResolver(accountSchema),
@@ -162,6 +177,7 @@ const AccountTab = () => {
                 toast.success("Success: Data saved to Cloud Database!", { position: "top-right" });
                 reset();
                 setProfileImage(DUMMY_AVATAR);
+                setRefreshTrigger(prev => prev + 1); // Refresh the table
             } else {
                 toast.error("Failed to save data. Check backend logs.", { position: "top-right" });
             }
@@ -200,18 +216,9 @@ const AccountTab = () => {
                     <form onSubmit={handleSubmit(onSubmit, onError)}>
                         <h6 style={styles.sectionHeader}>Sponsor Information <span style={{ color: '#ff3e1d', textTransform: 'none' }}>(Member ID : )</span></h6>
                         <div style={styles.formGrid}>
-
                             <Controller name="joiningAmount" control={control} render={({ field }) => (
-                                <FormInput
-                                    label={<>Joining Amount <span style={{ color: '#ff3e1d' }}>*</span></>}
-                                    id="joiningAmount"
-                                    error={errors.joiningAmount}
-                                    placeholder="Enter Amount"
-                                    type="number"
-                                    {...field}
-                                />
+                                <FormInput label={<>Joining Amount <span style={{ color: '#ff3e1d' }}>*</span></>} id="joiningAmount" error={errors.joiningAmount} placeholder="Enter Amount" type="number" {...field} />
                             )} />
-
                             <Controller name="walletBalance" control={control} render={({ field }) => (
                                 <FormInput label={<>Wallet Balance <span style={{ color: '#ff3e1d' }}>*</span></>} id="walletBalance" error={errors.walletBalance} disabled={true} readOnly {...field} />
                             )} />
@@ -242,21 +249,13 @@ const AccountTab = () => {
                                 )} />
                                 {errors.state && <p style={styles.errorText}>{errors.state.message}</p>}
                             </div>
-
                             <div style={styles.inputGroup}>
                                 <label style={styles.label}>District</label>
                                 <Controller name="district" control={control} render={({ field }) => (
-                                    <Select
-                                        {...field}
-                                        options={districtOptions}
-                                        styles={styles.selectStyles(!!errors.district)}
-                                        placeholder="Select District"
-                                        isDisabled={!selectedState}
-                                    />
+                                    <Select {...field} options={districtOptions} styles={styles.selectStyles(!!errors.district)} placeholder="Select District" isDisabled={!selectedState} />
                                 )} />
                                 {errors.district && <p style={styles.errorText}>{errors.district.message}</p>}
                             </div>
-
                             <Controller name="city" control={control} render={({ field }) => (
                                 <FormInput label="City" id="city" error={errors.city} placeholder="City" type="text" maxLength={50} {...field} />
                             )} />
@@ -315,6 +314,9 @@ const AccountTab = () => {
                 </div>
             </div>
 
+            {/* --- MEMBERS DATA TABLE --- */}
+            <MembersTable refreshTrigger={refreshTrigger} />
+
             <div style={styles.card}>
                 <h5 style={styles.cardHeader}>Delete Account</h5>
                 <div style={styles.cardBody}>
@@ -335,6 +337,270 @@ const AccountTab = () => {
                 </div>
             </div>
         </>
+    );
+};
+
+// ==========================================
+// DATA TABLE COMPONENT (View, Edit, Delete, Approve)
+// ==========================================
+const MembersTable = ({ refreshTrigger }) => {
+    const [members, setMembers] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    // Modal States
+    const [viewModal, setViewModal] = useState(false);
+    const [editModal, setEditModal] = useState(false);
+    const [deleteModal, setDeleteModal] = useState(false);
+    const [approveModal, setApproveModal] = useState(false);
+
+    const [selectedRow, setSelectedRow] = useState(null);
+
+    const fetchMembers = async () => {
+        setLoading(true);
+        try {
+            const res = await fetch('https://my-dashboard-app-ky8v.onrender.com/RegInfo');
+            const data = await res.json();
+            setMembers(data);
+        } catch (error) {
+            console.error("Failed to fetch members", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchMembers();
+    }, [refreshTrigger]);
+
+    const openModal = (type, member) => {
+        setSelectedRow({ ...member }); // Clone the object
+        if (type === 'view') setViewModal(true);
+        if (type === 'edit') setEditModal(true);
+        if (type === 'delete') setDeleteModal(true);
+        if (type === 'approve') setApproveModal(true);
+    };
+
+    const closeModal = () => {
+        setViewModal(false); setEditModal(false); setDeleteModal(false); setApproveModal(false);
+        setSelectedRow(null);
+    };
+
+    const handleEditChange = (e) => {
+        setSelectedRow({ ...selectedRow, [e.target.name]: e.target.value });
+    };
+
+    const submitEdit = async () => {
+        try {
+            toast.loading("Updating member...", { toastId: 'update' });
+            const res = await fetch(`https://my-dashboard-app-ky8v.onrender.com/RegInfo/${selectedRow.RegInfoId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(selectedRow)
+            });
+            toast.dismiss('update');
+            if (res.ok) {
+                toast.success("Member updated successfully!");
+                closeModal();
+                fetchMembers();
+            } else toast.error("Failed to update.");
+        } catch (error) { toast.dismiss('update'); toast.error("Network error."); }
+    };
+
+    const confirmDelete = async () => {
+        try {
+            toast.loading("Deleting...", { toastId: 'delete' });
+            const res = await fetch(`https://my-dashboard-app-ky8v.onrender.com/RegInfo/${selectedRow.RegInfoId}`, { method: 'DELETE' });
+            toast.dismiss('delete');
+            if (res.ok) {
+                toast.success("Member deleted.");
+                closeModal();
+                fetchMembers();
+            } else toast.error("Failed to delete.");
+        } catch (error) { toast.dismiss('delete'); toast.error("Network error."); }
+    };
+
+    const confirmApprove = async () => {
+        try {
+            toast.loading("Approving...", { toastId: 'approve' });
+            // Generate 12 digit random number
+            const approvalId = Math.floor(100000000000 + Math.random() * 900000000000);
+            const dateStr = new Date().toISOString().split('T')[0];
+
+            const payload = { ...selectedRow, Status: 2, AprovalNumber: approvalId, AprovalDate: dateStr };
+
+            const res = await fetch(`https://my-dashboard-app-ky8v.onrender.com/RegInfo/${selectedRow.RegInfoId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            toast.dismiss('approve');
+            if (res.ok) {
+                toast.success(`Approved! ID: ${approvalId}`, { autoClose: false }); // Keep open so they can read it
+                closeModal();
+                fetchMembers();
+            } else toast.error("Failed to approve.");
+        } catch (error) { toast.dismiss('approve'); toast.error("Network error."); }
+    };
+
+    return (
+        <div style={styles.card}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingRight: '24px' }}>
+                <h5 style={styles.cardHeader}>Registered Members List</h5>
+                <button onClick={fetchMembers} style={styles.btnOutline}>Refresh Data</button>
+            </div>
+
+            <div style={styles.cardBody}>
+                {loading ? <p>Loading data...</p> : (
+                    <div style={styles.tableContainer}>
+                        <table style={styles.table}>
+                            <thead>
+                                <tr>
+                                    <th style={styles.th}>ID</th>
+                                    <th style={styles.th}>Actions</th>
+                                    <th style={styles.th}>Profile Image</th>
+                                    <th style={styles.th}>Approval ID</th>
+                                    <th style={styles.th}>Full Name</th>
+                                    <th style={styles.th}>Mobile No</th>
+                                    <th style={styles.th}>Email</th>
+                                    <th style={styles.th}>Status</th>
+                                    <th style={styles.th}>DOB</th>
+                                    <th style={styles.th}>Aadhar</th>
+                                    <th style={styles.th}>PAN</th>
+                                    <th style={styles.th}>City</th>
+                                    <th style={styles.th}>Joining Amt</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {members.map((row) => (
+                                    <tr key={row.RegInfoId}>
+                                        <td style={styles.td}>#{row.RegInfoId}</td>
+                                        <td style={styles.td}>
+                                            <button onClick={() => openModal('view', row)} style={styles.actionBtn} title="View">👁️</button>
+                                            <button onClick={() => openModal('edit', row)} style={styles.actionBtn} title="Edit">✏️</button>
+                                            <button onClick={() => openModal('delete', row)} style={styles.actionBtn} title="Delete">🗑️</button>
+                                            {row.Status !== 2 && (
+                                                <button onClick={() => openModal('approve', row)} style={styles.actionBtn} title="Approve">✅</button>
+                                            )}
+                                        </td>
+                                        <td style={styles.td}>
+                                            <img src={row.ProfileImage || DUMMY_AVATAR} alt="User" style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }} />
+                                        </td>
+                                        <td style={styles.td}>{row.AprovalNumber || 'Pending'}</td>
+                                        <td style={styles.td}>{row.PerName}</td>
+                                        <td style={styles.td}>{row.ContactNo}</td>
+                                        <td style={styles.td}>{row.MailId}</td>
+                                        <td style={{ ...styles.td, color: row.Status === 2 ? 'green' : 'orange', fontWeight: 'bold' }}>{row.Status === 2 ? 'Approved' : 'Pending'}</td>
+                                        <td style={styles.td}>{row.DOB ? row.DOB.substring(0, 10) : ''}</td>
+                                        <td style={styles.td}>{row.AadharNo}</td>
+                                        <td style={styles.td}>{row.PanNo}</td>
+                                        <td style={styles.td}>{row.City || row.Village}</td>
+                                        <td style={styles.td}>₹{row.JoiningAmt}</td>
+                                    </tr>
+                                ))}
+                                {members.length === 0 && <tr><td colSpan="13" style={{ ...styles.td, textAlign: 'center' }}>No members found in database.</td></tr>}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </div>
+
+            {/* VIEW MODAL */}
+            {viewModal && selectedRow && (
+                <div style={styles.modalOverlay}>
+                    <div style={styles.modalContent}>
+                        <button style={styles.closeBtn} onClick={closeModal}>×</button>
+                        <h4 style={{ marginTop: 0 }}>View Member Details</h4>
+                        <div style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
+                            <img src={selectedRow.ProfileImage || DUMMY_AVATAR} alt="Profile" style={{ width: '100px', height: '100px', borderRadius: '8px', objectFit: 'cover' }} />
+                            <div>
+                                <p><strong>Name:</strong> {selectedRow.PerName}</p>
+                                <p><strong>ID:</strong> #{selectedRow.RegInfoId} | <strong>Approval No:</strong> {selectedRow.AprovalNumber || 'Pending'}</p>
+                                <p><strong>Status:</strong> {selectedRow.Status === 2 ? 'Approved' : 'Pending'}</p>
+                            </div>
+                        </div>
+                        <div style={styles.formGrid}>
+                            <p><strong>Mobile:</strong> {selectedRow.ContactNo}</p>
+                            <p><strong>Email:</strong> {selectedRow.MailId}</p>
+                            <p><strong>DOB:</strong> {selectedRow.DOB ? selectedRow.DOB.substring(0, 10) : ''}</p>
+                            <p><strong>Aadhar:</strong> {selectedRow.AadharNo}</p>
+                            <p><strong>Village:</strong> {selectedRow.Village}</p>
+                            <p><strong>Pin Code:</strong> {selectedRow.Pincode}</p>
+                            <p><strong>Joining Amount:</strong> ₹{selectedRow.JoiningAmt}</p>
+                            <p><strong>Bank Name:</strong> {selectedRow.BankName}</p>
+                            <p><strong>Account No:</strong> {selectedRow.AcctNo}</p>
+                            <p><strong>IFSC:</strong> {selectedRow.IFSCode}</p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* EDIT MODAL */}
+            {editModal && selectedRow && (
+                <div style={styles.modalOverlay}>
+                    <div style={styles.modalContent}>
+                        <button style={styles.closeBtn} onClick={closeModal}>×</button>
+                        <h4 style={{ marginTop: 0 }}>Edit Member Details</h4>
+                        <div style={styles.formGrid}>
+                            <div style={styles.inputGroup}>
+                                <label style={styles.label}>Full Name</label>
+                                <input style={styles.input(false)} name="PerName" value={selectedRow.PerName || ''} onChange={handleEditChange} />
+                            </div>
+                            <div style={styles.inputGroup}>
+                                <label style={styles.label}>Mobile No</label>
+                                <input style={styles.input(false)} name="ContactNo" value={selectedRow.ContactNo || ''} onChange={handleEditChange} />
+                            </div>
+                            <div style={styles.inputGroup}>
+                                <label style={styles.label}>Email</label>
+                                <input style={styles.input(false)} name="MailId" value={selectedRow.MailId || ''} onChange={handleEditChange} />
+                            </div>
+                            <div style={styles.inputGroup}>
+                                <label style={styles.label}>Aadhar No</label>
+                                <input style={styles.input(false)} name="AadharNo" value={selectedRow.AadharNo || ''} onChange={handleEditChange} />
+                            </div>
+                            <div style={styles.inputGroup}>
+                                <label style={styles.label}>Village</label>
+                                <input style={styles.input(false)} name="Village" value={selectedRow.Village || ''} onChange={handleEditChange} />
+                            </div>
+                            <div style={styles.inputGroup}>
+                                <label style={styles.label}>Pin Code</label>
+                                <input style={styles.input(false)} name="Pincode" value={selectedRow.Pincode || ''} onChange={handleEditChange} />
+                            </div>
+                        </div>
+                        <button onClick={submitEdit} style={styles.btnPrimary}>Save Changes</button>
+                    </div>
+                </div>
+            )}
+
+            {/* DELETE MODAL */}
+            {deleteModal && selectedRow && (
+                <div style={styles.modalOverlay}>
+                    <div style={{ ...styles.modalContent, maxWidth: '400px', textAlign: 'center' }}>
+                        <h4 style={{ marginTop: 0, color: '#ff3e1d' }}>Confirm Delete</h4>
+                        <p>Are you sure you want to completely delete <strong>{selectedRow.PerName}</strong>? This action cannot be undone.</p>
+                        <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '20px' }}>
+                            <button onClick={closeModal} style={styles.btnOutline}>Cancel</button>
+                            <button onClick={confirmDelete} style={styles.btnDanger}>Yes, Delete</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* APPROVE MODAL */}
+            {approveModal && selectedRow && (
+                <div style={styles.modalOverlay}>
+                    <div style={{ ...styles.modalContent, maxWidth: '400px', textAlign: 'center' }}>
+                        <h4 style={{ marginTop: 0, color: '#71dd37' }}>Approve Member</h4>
+                        <p>Are you sure you want to approve <strong>{selectedRow.PerName}</strong>?</p>
+                        <p style={{ fontSize: '0.85rem', color: '#a1acb8' }}>This will generate a permanent 12-digit Approval ID.</p>
+                        <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '20px' }}>
+                            <button onClick={closeModal} style={styles.btnOutline}>Cancel</button>
+                            <button onClick={confirmApprove} style={styles.btnSuccess}>Confirm Approval</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
     );
 };
 
