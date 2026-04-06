@@ -72,8 +72,8 @@ const styles = {
     warningText: { color: '#ffab00', fontSize: '0.875rem', margin: 0 },
     sectionHeader: { fontSize: '1rem', fontWeight: '500', color: '#566a7f', textTransform: 'uppercase', marginBottom: '20px', marginTop: '32px', borderBottom: '2px solid #2b84b8', paddingBottom: '8px' },
 
-    // Table & Modal Styles
-    tableContainer: { overflowX: 'auto', marginTop: '20px' },
+    // UPDATED Table Styles to force scrolling and contain the width
+    tableContainer: { width: '100%', overflowX: 'auto', marginTop: '20px', WebkitOverflowScrolling: 'touch' },
     table: { width: '100%', borderCollapse: 'collapse', minWidth: '1500px' },
     th: { padding: '12px 16px', textAlign: 'left', backgroundColor: '#f5f5f9', color: '#566a7f', fontWeight: '600', fontSize: '0.875rem', borderBottom: '1px solid #d9dee3', whiteSpace: 'nowrap' },
     td: { padding: '12px 16px', borderBottom: '1px solid #d9dee3', color: '#697a8d', fontSize: '0.9375rem', whiteSpace: 'nowrap' },
@@ -450,8 +450,9 @@ const MembersTable = ({ refreshTrigger }) => {
     };
 
     return (
-        <div style={styles.card}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingRight: '24px' }}>
+        // ADDED OVERFLOW: HIDDEN to the outer card to stop the page from stretching!
+        <div style={{ ...styles.card, overflow: 'hidden' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '24px 24px 0 24px' }}>
                 <h5 style={styles.cardHeader}>Registered Members List</h5>
                 <button onClick={fetchMembers} style={styles.btnOutline}>Refresh Data</button>
             </div>
