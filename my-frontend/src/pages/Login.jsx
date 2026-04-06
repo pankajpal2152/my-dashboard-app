@@ -68,7 +68,7 @@ const LoginForm = ({ onLogin, onToggleView }) => {
             <div style={styles.logoContainer}>
                 <img src="/logo.png" alt="App Logo" style={styles.logoImage} />
             </div>
-            <h3 style={styles.welcomeText}>Welcome! 👋</h3>
+            <h3 style={styles.welcomeText}>Welcome!</h3>
             <p style={styles.subText}>Please sign in to your account and start the Astha Didi Project</p>
 
             <form onSubmit={handleSubmit}>
@@ -158,8 +158,8 @@ const SignupForm = ({ onSignup, onToggleView }) => {
             <div style={styles.logoContainer}>
                 <img src="/logo.png" alt="App Logo" style={styles.logoImage} />
             </div>
-            <h3 style={styles.welcomeText}>Adventure starts here 🚀</h3>
-            <p style={styles.subText}>Astha Didi Project</p>
+            <h3 style={styles.welcomeText}>Astha Didi Project</h3>
+            {/* <p style={styles.subText}>Astha Didi Project</p> */}
 
             <form onSubmit={handleSubmit}>
                 <div style={styles.formGroup}>
