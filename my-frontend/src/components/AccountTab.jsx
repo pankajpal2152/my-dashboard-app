@@ -84,8 +84,8 @@ const styles = {
 
     actionBtn: { background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem', margin: '0 4px', color: '#697a8d' },
     modalOverlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 10000, padding: '20px' },
-    modalContent: { backgroundColor: '#fff', padding: '30px', borderRadius: '8px', width: '100%', maxWidth: '800px', maxHeight: '90vh', overflowY: 'auto', position: 'relative', boxSizing: 'border-box' },
-    closeBtn: { position: 'absolute', top: '15px', right: '15px', background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: '#a1acb8' },
+    modalContent: { backgroundColor: '#fff', padding: '30px', borderRadius: '8px', width: '100%', maxWidth: '1000px', maxHeight: '90vh', overflowY: 'auto', position: 'relative', boxSizing: 'border-box' },
+    closeBtn: { position: 'absolute', top: '15px', right: '15px', background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: '#a1acb8', zIndex: 10 },
 
     // Pagination Styles
     paginationContainer: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', borderTop: '1px solid #d9dee3', flexWrap: 'wrap', gap: '10px', color: '#697a8d', fontSize: '0.875rem', backgroundColor: '#fff' },
@@ -453,7 +453,7 @@ const MembersTable = ({ refreshTrigger }) => {
 
     // Modal Actions
     const openModal = (type, member) => {
-        setSelectedRow({ ...member });
+        setSelectedRow({ ...member }); // Clone the object
         if (type === 'view') setViewModal(true);
         if (type === 'edit') setEditModal(true);
         if (type === 'delete') setDeleteModal(true);
@@ -645,28 +645,59 @@ const MembersTable = ({ refreshTrigger }) => {
             {/* VIEW MODAL */}
             {viewModal && selectedRow && (
                 <div style={styles.modalOverlay}>
-                    <div style={styles.modalContent}>
-                        <button style={styles.closeBtn} onClick={closeModal}>×</button>
-                        <h4 style={{ marginTop: 0 }}>View Member Details</h4>
-                        <div style={{ display: 'flex', gap: '20px', marginBottom: '20px', flexWrap: 'wrap' }}>
-                            <img src={selectedRow.ProfileImage || DUMMY_AVATAR} alt="Profile" style={{ width: '100px', height: '100px', borderRadius: '8px', objectFit: 'cover' }} />
-                            <div>
-                                <p><strong>Name:</strong> {selectedRow.PerName}</p>
-                                <p><strong>ID:</strong> #{selectedRow.RegInfoId} | <strong>Approval No:</strong> {selectedRow.AprovalNumber || 'Pending'}</p>
-                                <p><strong>Status:</strong> {selectedRow.Status === 2 ? 'Approved' : 'Pending'}</p>
-                            </div>
+                    <div style={{ ...styles.modalContent, maxWidth: '1000px', padding: '0' }}>
+                        <div style={styles.cardHeader}>
+                            <h5 style={{ margin: 0 }}>View Member Details</h5>
+                            <button style={styles.closeBtn} onClick={closeModal}>×</button>
                         </div>
-                        <div style={styles.formGrid}>
-                            <p><strong>Mobile:</strong> {selectedRow.ContactNo}</p>
-                            <p><strong>Email:</strong> {selectedRow.MailId}</p>
-                            <p><strong>DOB:</strong> {selectedRow.DOB ? selectedRow.DOB.substring(0, 10) : ''}</p>
-                            <p><strong>Aadhar:</strong> {selectedRow.AadharNo}</p>
-                            <p><strong>Village:</strong> {selectedRow.Village}</p>
-                            <p><strong>Pin Code:</strong> {selectedRow.Pincode}</p>
-                            <p><strong>Joining Amount:</strong> ₹{selectedRow.JoiningAmt}</p>
-                            <p><strong>Bank Name:</strong> {selectedRow.BankName}</p>
-                            <p><strong>Account No:</strong> {selectedRow.AcctNo}</p>
-                            <p><strong>IFSC:</strong> {selectedRow.IFSCode}</p>
+                        <div style={styles.cardBody}>
+                            <div style={styles.profileSection}>
+                                <img src={selectedRow.ProfileImage || DUMMY_AVATAR} alt="Profile Avatar" style={styles.avatar} />
+                                <div>
+                                    <p style={styles.hintText}><strong>ID:</strong> #{selectedRow.RegInfoId}</p>
+                                    <p style={styles.hintText}><strong>Approval No:</strong> {selectedRow.AprovalNumber || 'Pending'}</p>
+                                    <p style={styles.hintText}><strong>Status:</strong> {selectedRow.Status === 2 ? 'Approved' : 'Pending'}</p>
+                                </div>
+                            </div>
+
+                            <h6 style={styles.sectionHeader}>Sponsor Information</h6>
+                            <div style={styles.formGrid}>
+                                <FormInput label="Joining Amount" value={selectedRow.JoiningAmt || ''} disabled readOnly />
+                                <FormInput label="Wallet Balance" value={selectedRow.WalletBalance || '0'} disabled readOnly />
+                            </div>
+
+                            <h6 style={styles.sectionHeader}>Personal Details</h6>
+                            <div style={styles.formGrid}>
+                                <FormInput label="Full Name" value={selectedRow.PerName || ''} disabled readOnly />
+                                <FormInput label="S/D/W of" value={selectedRow.FathersName || ''} disabled readOnly />
+                                <FormInput label="Date of Birth" value={selectedRow.DOB ? selectedRow.DOB.substring(0, 10) : ''} disabled readOnly />
+                                <FormInput label="Nominee Name" value={selectedRow.NomineeName || ''} disabled readOnly />
+                            </div>
+
+                            <h6 style={styles.sectionHeader}>Postal Address Information</h6>
+                            <div style={styles.formGrid}>
+                                <FormInput label="State" value="West Bengal" disabled readOnly />
+                                <FormInput label="District" value={selectedRow.DistId || ''} disabled readOnly />
+                                <FormInput label="City" value={selectedRow.City || ''} disabled readOnly />
+                                <FormInput label="Block" value={selectedRow.BlockName || ''} disabled readOnly />
+                                <FormInput label="Post Office" value={selectedRow.PO || ''} disabled readOnly />
+                                <FormInput label="Police Station" value={selectedRow.PS || ''} disabled readOnly />
+                                <FormInput label="Gram Panchayet" value={selectedRow.Village || ''} disabled readOnly />
+                                <FormInput label="Village" value={selectedRow.Village || ''} disabled readOnly />
+                                <FormInput label="Pin Code" value={selectedRow.Pincode || ''} disabled readOnly />
+                                <FormInput label="Contact Number" value={selectedRow.ContactNo || ''} disabled readOnly />
+                                <FormInput label="Email ID" value={selectedRow.MailId || ''} disabled readOnly />
+                            </div>
+
+                            <h6 style={styles.sectionHeader}>Banking & Payment Details</h6>
+                            <div style={styles.formGrid}>
+                                <FormInput label="Bank Name" value={selectedRow.BankName || ''} disabled readOnly />
+                                <FormInput label="Branch Name" value={selectedRow.BranchName || ''} disabled readOnly />
+                                <FormInput label="Account No" value={selectedRow.AcctNo || ''} disabled readOnly />
+                                <FormInput label="IFS Code" value={selectedRow.IFSCode || ''} disabled readOnly />
+                                <FormInput label="PAN No" value={selectedRow.PanNo || ''} disabled readOnly />
+                                <FormInput label="Aadhar No" value={selectedRow.AadharNo || ''} disabled readOnly />
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -675,36 +706,64 @@ const MembersTable = ({ refreshTrigger }) => {
             {/* EDIT MODAL */}
             {editModal && selectedRow && (
                 <div style={styles.modalOverlay}>
-                    <div style={styles.modalContent}>
-                        <button style={styles.closeBtn} onClick={closeModal}>×</button>
-                        <h4 style={{ marginTop: 0 }}>Edit Member Details</h4>
-                        <div style={styles.formGrid}>
-                            <div style={styles.inputGroup}>
-                                <label style={styles.label}>Full Name</label>
-                                <input style={styles.input(false)} name="PerName" value={selectedRow.PerName || ''} onChange={handleEditChange} />
+                    <div style={{ ...styles.modalContent, maxWidth: '1000px', padding: '0' }}>
+                        <div style={styles.cardHeader}>
+                            <h5 style={{ margin: 0 }}>Edit Member Details</h5>
+                            <button style={styles.closeBtn} onClick={closeModal}>×</button>
+                        </div>
+                        <div style={styles.cardBody}>
+                            <div style={styles.profileSection}>
+                                <img src={selectedRow.ProfileImage || DUMMY_AVATAR} alt="Profile Avatar" style={styles.avatar} />
+                                <div>
+                                    <p style={styles.hintText}><strong>ID:</strong> #{selectedRow.RegInfoId}</p>
+                                    <p style={styles.hintText}><strong>Approval No:</strong> {selectedRow.AprovalNumber || 'Pending'}</p>
+                                </div>
                             </div>
-                            <div style={styles.inputGroup}>
-                                <label style={styles.label}>Mobile No</label>
-                                <input style={styles.input(false)} name="ContactNo" value={selectedRow.ContactNo || ''} onChange={handleEditChange} />
+
+                            <h6 style={styles.sectionHeader}>Sponsor Information</h6>
+                            <div style={styles.formGrid}>
+                                <FormInput label="Joining Amount" name="JoiningAmt" value={selectedRow.JoiningAmt || ''} onChange={handleEditChange} type="number" />
+                                <FormInput label="Wallet Balance" name="WalletBalance" value={selectedRow.WalletBalance || ''} onChange={handleEditChange} type="number" disabled readOnly />
                             </div>
-                            <div style={styles.inputGroup}>
-                                <label style={styles.label}>Email</label>
-                                <input style={styles.input(false)} name="MailId" value={selectedRow.MailId || ''} onChange={handleEditChange} />
+
+                            <h6 style={styles.sectionHeader}>Personal Details</h6>
+                            <div style={styles.formGrid}>
+                                <FormInput label="Full Name" name="PerName" value={selectedRow.PerName || ''} onChange={handleEditChange} />
+                                <FormInput label="S/D/W of" name="FathersName" value={selectedRow.FathersName || ''} onChange={handleEditChange} />
+                                <FormInput label="Date of Birth" name="DOB" value={selectedRow.DOB ? selectedRow.DOB.substring(0, 10) : ''} onChange={handleEditChange} type="date" />
+                                <FormInput label="Nominee Name" name="NomineeName" value={selectedRow.NomineeName || ''} onChange={handleEditChange} />
                             </div>
-                            <div style={styles.inputGroup}>
-                                <label style={styles.label}>Aadhar No</label>
-                                <input style={styles.input(false)} name="AadharNo" value={selectedRow.AadharNo || ''} onChange={handleEditChange} />
+
+                            <h6 style={styles.sectionHeader}>Postal Address Information</h6>
+                            <div style={styles.formGrid}>
+                                {/* Using simple text inputs for Edit Modal to ensure easy binding with existing state without complex nested objects */}
+                                <FormInput label="State" value="West Bengal" disabled readOnly />
+                                <FormInput label="District" name="DistId" value={selectedRow.DistId || ''} onChange={handleEditChange} />
+                                <FormInput label="City" name="City" value={selectedRow.City || ''} onChange={handleEditChange} />
+                                <FormInput label="Block" name="BlockName" value={selectedRow.BlockName || ''} onChange={handleEditChange} />
+                                <FormInput label="Post Office" name="PO" value={selectedRow.PO || ''} onChange={handleEditChange} />
+                                <FormInput label="Police Station" name="PS" value={selectedRow.PS || ''} onChange={handleEditChange} />
+                                <FormInput label="Gram Panchayet" name="Village" value={selectedRow.Village || ''} onChange={handleEditChange} />
+                                <FormInput label="Village" name="Village" value={selectedRow.Village || ''} onChange={handleEditChange} />
+                                <FormInput label="Pin Code" name="Pincode" value={selectedRow.Pincode || ''} onChange={handleEditChange} type="number" />
+                                <FormInput label="Contact Number" name="ContactNo" value={selectedRow.ContactNo || ''} onChange={handleEditChange} />
+                                <FormInput label="Email ID" name="MailId" value={selectedRow.MailId || ''} onChange={handleEditChange} />
                             </div>
-                            <div style={styles.inputGroup}>
-                                <label style={styles.label}>Village</label>
-                                <input style={styles.input(false)} name="Village" value={selectedRow.Village || ''} onChange={handleEditChange} />
+
+                            <h6 style={styles.sectionHeader}>Banking & Payment Details</h6>
+                            <div style={styles.formGrid}>
+                                <FormInput label="Bank Name" name="BankName" value={selectedRow.BankName || ''} onChange={handleEditChange} />
+                                <FormInput label="Branch Name" name="BranchName" value={selectedRow.BranchName || ''} onChange={handleEditChange} />
+                                <FormInput label="Account No" name="AcctNo" value={selectedRow.AcctNo || ''} onChange={handleEditChange} />
+                                <FormInput label="IFS Code" name="IFSCode" value={selectedRow.IFSCode || ''} onChange={handleEditChange} />
+                                <FormInput label="PAN No" name="PanNo" value={selectedRow.PanNo || ''} onChange={handleEditChange} />
+                                <FormInput label="Aadhar No" name="AadharNo" value={selectedRow.AadharNo || ''} onChange={handleEditChange} />
                             </div>
-                            <div style={styles.inputGroup}>
-                                <label style={styles.label}>Pin Code</label>
-                                <input style={styles.input(false)} name="Pincode" value={selectedRow.Pincode || ''} onChange={handleEditChange} />
+
+                            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '32px' }}>
+                                <button onClick={submitEdit} style={styles.btnPrimary}>Save Changes</button>
                             </div>
                         </div>
-                        <button onClick={submitEdit} style={styles.btnPrimary}>Save Changes</button>
                     </div>
                 </div>
             )}
