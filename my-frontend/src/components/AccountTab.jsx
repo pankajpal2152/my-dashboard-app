@@ -114,7 +114,7 @@ const AccountTab = () => {
         resolver: zodResolver(accountSchema),
         mode: 'onChange',
         defaultValues: {
-            joiningAmount: '105',
+            joiningAmount: '26000',
             walletBalance: '26000',
             fullName: '', sdwOf: '', dob: '', guardianContactNo: '',
             state: null, district: null, city: '', block: '', postOffice: '', policeStation: '', gramPanchayet: '', village: '', pinCode: '', mobileNo: '', email: '',
@@ -215,7 +215,7 @@ const AccountTab = () => {
             <ToastContainer autoClose={3000} pauseOnHover={false} />
             <div style={styles.card}>
                 <div style={styles.cardHeader}>
-                    <h5>New General Member</h5>
+                    <h5>Astha Didi Registration</h5>
                 </div>
                 <div style={styles.cardBody}>
                     <div style={styles.profileSection}>
@@ -334,7 +334,7 @@ const AccountTab = () => {
             {/* --- MEMBERS DATA TABLE --- */}
             <MembersTable refreshTrigger={refreshTrigger} />
 
-            <div style={styles.card}>
+            {/* <div style={styles.card}>
                 <div style={styles.cardHeader}>
                     <h5>Delete Account</h5>
                 </div>
@@ -354,7 +354,7 @@ const AccountTab = () => {
                         <button type="submit" style={styles.btnDanger}>Deactivate Account</button>
                     </form>
                 </div>
-            </div>
+            </div> */}
         </>
     );
 };
@@ -602,7 +602,7 @@ const MembersTable = ({ refreshTrigger }) => {
                                             <td style={styles.stickyRightTd}>
                                                 <button onClick={() => openModal('view', row)} style={styles.actionBtn} title="View">👁️</button>
                                                 <button onClick={() => openModal('edit', row)} style={styles.actionBtn} title="Edit">✏️</button>
-                                                <button onClick={() => openModal('delete', row)} style={styles.actionBtn} title="Delete">🗑️</button>
+                                                {/* <button onClick={() => openModal('delete', row)} style={styles.actionBtn} title="Delete">🗑️</button> */}
                                                 {row.Status !== 2 && (
                                                     <button onClick={() => openModal('approve', row)} style={styles.actionBtn} title="Approve">✅</button>
                                                 )}
