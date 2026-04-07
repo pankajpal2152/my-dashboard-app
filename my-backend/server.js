@@ -64,7 +64,7 @@ db.connect((err) => {
         }
     });
 
-    // 4. Auto-create Client's reginfo table (UPDATED TO ACCEPT STRINGS AND CITY)
+    // 4. Auto-create Client's reginfo table (UPDATED SCHEMA FOR STRINGS & CITY)
     const createRegInfoTable = `
         CREATE TABLE IF NOT EXISTS reginfo (
             RegInfoId int(11) NOT NULL AUTO_INCREMENT,
@@ -87,15 +87,15 @@ db.connect((err) => {
     `;
     db.query(createRegInfoTable, () => { });
 
-    // 5. MAGIC FIXES: Automatically fix existing live database columns so it won't crash!
+    // 5. MAGIC FIXES: Modify existing DB columns to accept Text Strings instead of Integers
+    db.query("ALTER TABLE reginfo MODIFY COLUMN StateId VARCHAR(100)", () => { });
+    db.query("ALTER TABLE reginfo MODIFY COLUMN DistId VARCHAR(100)", () => { });
+    db.query("ALTER TABLE reginfo ADD COLUMN City VARCHAR(100) DEFAULT NULL", () => { });
     db.query("ALTER TABLE reginfo ADD COLUMN ProfileImage LONGTEXT DEFAULT NULL", () => { });
     db.query("ALTER TABLE reginfo ADD COLUMN Status int(1) DEFAULT 1", () => { });
     db.query("ALTER TABLE reginfo ADD COLUMN AprovedBy int(11) DEFAULT NULL", () => { });
     db.query("ALTER TABLE reginfo ADD COLUMN AprovalDate date DEFAULT NULL", () => { });
     db.query("ALTER TABLE reginfo ADD COLUMN AprovalNumber int(11) DEFAULT NULL", () => { });
-    db.query("ALTER TABLE reginfo ADD COLUMN City VARCHAR(100) DEFAULT NULL", () => { }); // Adds missing City
-    db.query("ALTER TABLE reginfo MODIFY COLUMN StateId VARCHAR(100)", () => { }); // Changes INT to String
-    db.query("ALTER TABLE reginfo MODIFY COLUMN DistId VARCHAR(100)", () => { });  // Changes INT to String
 });
 
 // ==========================================
@@ -158,7 +158,7 @@ app.get('/RegInfo/:RegInfoId', (req, res) => {
 });
 
 app.post('/RegInfo', (req, res) => {
-    // NEW: Added 'City' to the destructuring and the SQL insert
+    // NEW: Capturing City and inserting it
     const { ProfileImage, PerName, FathersName, DOB, NomineeName, StateId, DistId, City, BlockName, PO, PS, Village, Pincode, ContactNo, MailId, BankName, BranchName, AcctNo, IFSCode, PanNo, AadharNo, JoiningAmt, WalletBalance, Status, AprovedBy, AprovalDate, AprovalNumber } = req.body;
     const insertQuery = 'INSERT INTO reginfo (ProfileImage,PerName,FathersName,DOB,NomineeName,StateId,DistId,City,BlockName,PO,PS,Village,Pincode,ContactNo,MailId,BankName,BranchName,AcctNo,IFSCode,PanNo,AadharNo,JoiningAmt,WalletBalance,Status,AprovedBy,AprovalDate,AprovalNumber) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)';
     db.query(insertQuery, [ProfileImage, PerName, FathersName, DOB, NomineeName, StateId, DistId, City, BlockName, PO, PS, Village, Pincode, ContactNo, MailId, BankName, BranchName, AcctNo, IFSCode, PanNo, AadharNo, JoiningAmt, WalletBalance, Status, AprovedBy, AprovalDate, AprovalNumber], (err, result) => {
@@ -169,7 +169,7 @@ app.post('/RegInfo', (req, res) => {
 
 app.put('/RegInfo/:RegInfoId', (req, res) => {
     const { RegInfoId } = req.params;
-    // NEW: Added 'City' to the destructuring and the SQL update
+    // NEW: Capturing City and updating it
     const { ProfileImage, PerName, FathersName, DOB, NomineeName, StateId, DistId, City, BlockName, PO, PS, Village, Pincode, ContactNo, MailId, BankName, BranchName, AcctNo, IFSCode, PanNo, AadharNo, JoiningAmt, WalletBalance, Status, AprovedBy, AprovalDate, AprovalNumber } = req.body;
     const updateQuery = 'UPDATE reginfo SET ProfileImage=?, PerName=?, FathersName=?, DOB=?, NomineeName=?, StateId=?, DistId=?, City=?, BlockName=?, PO=?, PS=?, Village=?, Pincode=?, ContactNo=?, MailId=?, BankName=?, BranchName=?, AcctNo=?, IFSCode=?, PanNo=?, AadharNo=?, JoiningAmt=?, WalletBalance=?, Status=?, AprovedBy=?, AprovalDate=?, AprovalNumber=? WHERE RegInfoId=?';
     db.query(updateQuery, [ProfileImage, PerName, FathersName, DOB, NomineeName, StateId, DistId, City, BlockName, PO, PS, Village, Pincode, ContactNo, MailId, BankName, BranchName, AcctNo, IFSCode, PanNo, AadharNo, JoiningAmt, WalletBalance, Status, AprovedBy, AprovalDate, AprovalNumber, RegInfoId], (err) => {

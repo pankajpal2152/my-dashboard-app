@@ -114,8 +114,8 @@ const AccountTab = () => {
         resolver: zodResolver(accountSchema),
         mode: 'onChange',
         defaultValues: {
-            joiningAmount: '105', // Default Set
-            walletBalance: '26000', // Default Set
+            joiningAmount: '105',
+            walletBalance: '26000',
             fullName: '', sdwOf: '', dob: '', guardianContactNo: '',
             state: null, district: null, city: '', block: '', postOffice: '', policeStation: '', gramPanchayet: '', village: '', pinCode: '', mobileNo: '', email: '',
             bankName: '', branchName: '', accountNo: '', ifsCode: '', panNo: '', aadharNo: '',
@@ -152,10 +152,10 @@ const AccountTab = () => {
             PerName: data.fullName,
             FathersName: data.sdwOf || "",
             DOB: data.dob,
-            NomineeName: data.guardianContactNo || "", // Mapped Guardian Contact No back to NomineeName
-            StateId: stateName,     // Properly sending the State String
-            DistId: districtName,   // Properly sending the District String
-            City: data.city || "",  // NEW: Successfully capturing the City text
+            NomineeName: data.guardianContactNo || "",
+            StateId: stateName,
+            DistId: districtName,
+            City: data.city || "",  // NEW: Capturing City Text!
             BlockName: data.block || "",
             PO: data.postOffice || "",
             PS: data.policeStation || "",
@@ -562,8 +562,8 @@ const MembersTable = ({ refreshTrigger }) => {
                                         {renderTh('Full Name', 'PerName')}
                                         {renderTh('Mobile No', 'ContactNo')}
                                         {renderTh('Email', 'MailId')}
-                                        {renderTh('State', 'StateId')}     {/* Added to table */}
-                                        {renderTh('District', 'DistId')}   {/* Added to table */}
+                                        {renderTh('State', 'StateId')}
+                                        {renderTh('District', 'DistId')}
                                         {renderTh('Status', 'Status')}
                                         {renderTh('DOB', 'DOB')}
                                         {renderTh('Aadhar', 'AadharNo')}
@@ -589,8 +589,8 @@ const MembersTable = ({ refreshTrigger }) => {
                                             <td style={styles.td}>{row.PerName}</td>
                                             <td style={styles.td}>{row.ContactNo}</td>
                                             <td style={styles.td}>{row.MailId}</td>
-                                            <td style={styles.td}>{row.StateId}</td>     {/* Displayed in table */}
-                                            <td style={styles.td}>{row.DistId}</td>       {/* Displayed in table */}
+                                            <td style={styles.td}>{row.StateId}</td>
+                                            <td style={styles.td}>{row.DistId}</td>
                                             <td style={{ ...styles.td, color: row.Status === 2 ? 'green' : 'orange', fontWeight: 'bold' }}>{row.Status === 2 ? 'Approved' : 'Pending'}</td>
                                             <td style={styles.td}>{row.DOB ? row.DOB.substring(0, 10) : ''}</td>
                                             <td style={styles.td}>{row.AadharNo}</td>
@@ -679,7 +679,6 @@ const MembersTable = ({ refreshTrigger }) => {
                                 <FormInput label="Full Name" value={selectedRow.PerName || ''} disabled readOnly />
                                 <FormInput label="S/D/W of" value={selectedRow.FathersName || ''} disabled readOnly />
                                 <FormInput label="Date of Birth" value={selectedRow.DOB ? selectedRow.DOB.substring(0, 10) : ''} disabled readOnly />
-                                {/* Displaying the Guardian Contact no (stored in NomineeName) */}
                                 <FormInput label="Guardian Contact no" value={selectedRow.NomineeName || ''} disabled readOnly />
                             </div>
 
@@ -740,7 +739,6 @@ const MembersTable = ({ refreshTrigger }) => {
                                 <FormInput label="Full Name" name="PerName" value={selectedRow.PerName || ''} onChange={handleEditChange} />
                                 <FormInput label="S/D/W of" name="FathersName" value={selectedRow.FathersName || ''} onChange={handleEditChange} />
                                 <FormInput label="Date of Birth" name="DOB" value={selectedRow.DOB ? selectedRow.DOB.substring(0, 10) : ''} onChange={handleEditChange} type="date" />
-                                {/* Editing the Guardian Contact no (stored in NomineeName) */}
                                 <FormInput label="Guardian Contact no" name="NomineeName" value={selectedRow.NomineeName || ''} onChange={handleEditChange} />
                             </div>
 
