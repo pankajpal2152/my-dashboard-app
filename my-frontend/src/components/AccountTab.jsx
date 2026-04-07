@@ -114,8 +114,8 @@ const AccountTab = () => {
         resolver: zodResolver(accountSchema),
         mode: 'onChange',
         defaultValues: {
-            joiningAmount: '105',
-            walletBalance: '26000',
+            joiningAmount: '105', // Default Set
+            walletBalance: '26000', // Default Set
             fullName: '', sdwOf: '', dob: '', guardianContactNo: '',
             state: null, district: null, city: '', block: '', postOffice: '', policeStation: '', gramPanchayet: '', village: '', pinCode: '', mobileNo: '', email: '',
             bankName: '', branchName: '', accountNo: '', ifsCode: '', panNo: '', aadharNo: '',
@@ -144,26 +144,18 @@ const AccountTab = () => {
     };
 
     const onSubmit = async (data) => {
-        // ACTUALLY MAP THE STRING LABELS OF DROPDOWNS INSTEAD OF HARDCODING IDs
         const stateName = data.state ? data.state.label : "";
         const districtName = data.district ? data.district.label : "";
-
-        // Note: For backwards compatibility with the existing database schema,
-        // we map the textual 'State' and 'District' into StateId and DistId 
-        // OR into unused columns. Since the DB expects Int(11) for StateId and DistId, 
-        // but your client wants to store the actual string name, we will save the string to 
-        // the database. BUT since DistId is an INT, it will crash if we pass a string.
-        // Therefore, we will store District in 'BlockName' or similar string column if we cant change DB.
-        // But assuming your DB can handle it, or you want to pass strings, let's pass them correctly!
 
         const dbPayload = {
             ProfileImage: profileImage === DUMMY_AVATAR ? null : profileImage,
             PerName: data.fullName,
             FathersName: data.sdwOf || "",
             DOB: data.dob,
-            NomineeName: data.guardianContactNo || "",
-            StateId: stateName,     // Note: Storing actual State Name text here
-            DistId: districtName,   // Note: Storing actual District Name text here
+            NomineeName: data.guardianContactNo || "", // Mapped Guardian Contact No back to NomineeName
+            StateId: stateName,     // Properly sending the State String
+            DistId: districtName,   // Properly sending the District String
+            City: data.city || "",  // NEW: Successfully capturing the City text
             BlockName: data.block || "",
             PO: data.postOffice || "",
             PS: data.policeStation || "",
