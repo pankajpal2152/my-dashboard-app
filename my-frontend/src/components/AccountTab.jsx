@@ -116,7 +116,7 @@ const EditMemberModal = ({ member, onClose, onSuccess }) => {
         resolver: zodResolver(accountSchema),
         mode: 'onChange',
         defaultValues: {
-            joiningAmount: String(member.JoiningAmt || ''),
+            joiningAmount: String(member.JoiningAmt || '0'),
             walletBalance: String(member.WalletBalance || ''),
             fullName: member.PerName || '',
             sdwOf: member.GuardianName || '',
@@ -256,7 +256,7 @@ const EditMemberModal = ({ member, onClose, onSuccess }) => {
                         <h6 style={styles.sectionHeader}>Astha Didi Information</h6>
                         <div style={styles.formGrid}>
                             <Controller name="joiningAmount" control={control} render={({ field }) => (
-                                <FormInput label={<>Joining Amount <span style={{ color: '#ff3e1d' }}>*</span></>} id="edit_joiningAmount" error={errors.joiningAmount} type="number" {...field} />
+                                <FormInput label={<>Joining Amount <span style={{ color: '#ff3e1d' }}>*</span></>} id="edit_joiningAmount" error={errors.joiningAmount} type="number" readOnly disabled={true} {...field} />
                             )} />
                             <Controller name="walletBalance" control={control} render={({ field }) => (
                                 <FormInput label={<>Wallet Balance <span style={{ color: '#ff3e1d' }}>*</span></>} id="edit_walletBalance" error={errors.walletBalance} disabled={true} readOnly {...field} />
@@ -490,7 +490,7 @@ const AccountTab = () => {
                         <h6 style={styles.sectionHeader}>Astha Didi Information <span style={{ color: '#ff3e1d', textTransform: 'none' }}>(Member ID : )</span></h6>
                         <div style={styles.formGrid}>
                             <Controller name="joiningAmount" control={control} render={({ field }) => (
-                                <FormInput label={<>Joining Amount <span style={{ color: '#ff3e1d' }}>*</span></>} id="joiningAmount" error={errors.joiningAmount} placeholder="Enter Amount" type="number" {...field} />
+                                <FormInput label={<>Joining Amount <span style={{ color: '#ff3e1d' }}>*</span></>} id="joiningAmount" error={errors.joiningAmount} placeholder="Enter Amount" type="number" readOnly disabled={true} {...field} />
                             )} />
                             <Controller name="walletBalance" control={control} render={({ field }) => (
                                 <FormInput label={<>Wallet Balance <span style={{ color: '#ff3e1d' }}>*</span></>} id="walletBalance" error={errors.walletBalance} disabled={true} readOnly {...field} />
@@ -602,7 +602,7 @@ const MembersTable = ({ refreshTrigger }) => {
     const [loading, setLoading] = useState(true);
     const [userRole, setUserRole] = useState('');
     const [userName, setUserName] = useState('');
-    const [userEmail, setUserEmail] = useState('');
+    // userEmail state removed here to fix ESLint warning
 
     // Pagination States
     const [currentPage, setCurrentPage] = useState(1);
@@ -627,7 +627,7 @@ const MembersTable = ({ refreshTrigger }) => {
                 const user = JSON.parse(userStr);
                 setUserRole(user.role || '');
                 setUserName(user.username || '');
-                setUserEmail(user.email || '');
+                // setUserEmail removed here as well
             } catch (e) {
                 console.error("Error parsing user data");
             }
@@ -925,7 +925,7 @@ const MembersTable = ({ refreshTrigger }) => {
 
                             <h6 style={styles.sectionHeader}>Astha Didi Information</h6>
                             <div style={styles.formGrid}>
-                                <FormInput label="Joining Amount" value={selectedRow.JoiningAmt || ''} disabled readOnly />
+                                <FormInput label="Joining Amount" value={selectedRow.JoiningAmt || '0'} disabled readOnly />
                                 <FormInput label="Wallet Balance" value={selectedRow.WalletBalance || '0'} disabled readOnly />
                             </div>
 
