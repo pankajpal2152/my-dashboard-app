@@ -64,7 +64,7 @@ db.connect((err) => {
         }
     });
 
-    // 4. Auto-create Client's reginfo table (UPDATED SCHEMA WITH NEW COLUMN NAMES)
+    // 4. Auto-create Client's reginfo table
     const createRegInfoTable = `
         CREATE TABLE IF NOT EXISTS reginfo (
             RegInfoId int(11) NOT NULL AUTO_INCREMENT,
@@ -81,7 +81,7 @@ db.connect((err) => {
             AadharNo varchar(15) DEFAULT NULL, JoiningAmt int(11) DEFAULT NULL,
             WalletBalance int(11) DEFAULT NULL, Status int(1) DEFAULT 1,
             AprovedBy varchar(255) DEFAULT NULL, AprovalDate date DEFAULT NULL,
-            AprovalNumber int(11) DEFAULT NULL,
+            AprovalNumber int(11) DEFAULT NULL, CreatedBy varchar(255) DEFAULT NULL,
             PRIMARY KEY (RegInfoId)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     `;
@@ -103,6 +103,7 @@ db.connect((err) => {
     db.query("ALTER TABLE reginfo MODIFY COLUMN AprovedBy VARCHAR(255) DEFAULT NULL", () => { });
     db.query("ALTER TABLE reginfo ADD COLUMN AprovalDate date DEFAULT NULL", () => { });
     db.query("ALTER TABLE reginfo ADD COLUMN AprovalNumber int(11) DEFAULT NULL", () => { });
+    db.query("ALTER TABLE reginfo ADD COLUMN CreatedBy VARCHAR(255) DEFAULT NULL", () => { });
 });
 
 // ==========================================
@@ -165,9 +166,9 @@ app.get('/RegInfo/:RegInfoId', (req, res) => {
 });
 
 app.post('/RegInfo', (req, res) => {
-    const { ProfileImage, PerName, GuardianName, DOB, GuardianContactNo, StateName, DistName, City, BlockName, PO, PS, GramPanchayet, Village, Pincode, ContactNo, MailId, BankName, BranchName, AcctNo, IFSCode, PanNo, AadharNo, JoiningAmt, WalletBalance, Status, AprovedBy, AprovalDate, AprovalNumber } = req.body;
-    const insertQuery = 'INSERT INTO reginfo (ProfileImage,PerName,GuardianName,DOB,GuardianContactNo,StateName,DistName,City,BlockName,PO,PS,GramPanchayet,Village,Pincode,ContactNo,MailId,BankName,BranchName,AcctNo,IFSCode,PanNo,AadharNo,JoiningAmt,WalletBalance,Status,AprovedBy,AprovalDate,AprovalNumber) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)';
-    db.query(insertQuery, [ProfileImage, PerName, GuardianName, DOB, GuardianContactNo, StateName, DistName, City, BlockName, PO, PS, GramPanchayet, Village, Pincode, ContactNo, MailId, BankName, BranchName, AcctNo, IFSCode, PanNo, AadharNo, JoiningAmt, WalletBalance, Status, AprovedBy, AprovalDate, AprovalNumber], (err, result) => {
+    const { ProfileImage, PerName, GuardianName, DOB, GuardianContactNo, StateName, DistName, City, BlockName, PO, PS, GramPanchayet, Village, Pincode, ContactNo, MailId, BankName, BranchName, AcctNo, IFSCode, PanNo, AadharNo, JoiningAmt, WalletBalance, Status, AprovedBy, AprovalDate, AprovalNumber, CreatedBy } = req.body;
+    const insertQuery = 'INSERT INTO reginfo (ProfileImage,PerName,GuardianName,DOB,GuardianContactNo,StateName,DistName,City,BlockName,PO,PS,GramPanchayet,Village,Pincode,ContactNo,MailId,BankName,BranchName,AcctNo,IFSCode,PanNo,AadharNo,JoiningAmt,WalletBalance,Status,AprovedBy,AprovalDate,AprovalNumber,CreatedBy) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)';
+    db.query(insertQuery, [ProfileImage, PerName, GuardianName, DOB, GuardianContactNo, StateName, DistName, City, BlockName, PO, PS, GramPanchayet, Village, Pincode, ContactNo, MailId, BankName, BranchName, AcctNo, IFSCode, PanNo, AadharNo, JoiningAmt, WalletBalance, Status, AprovedBy, AprovalDate, AprovalNumber, CreatedBy], (err, result) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json({ message: 'User added successfully', id: result.insertId });
     });
@@ -175,9 +176,9 @@ app.post('/RegInfo', (req, res) => {
 
 app.put('/RegInfo/:RegInfoId', (req, res) => {
     const { RegInfoId } = req.params;
-    const { ProfileImage, PerName, GuardianName, DOB, GuardianContactNo, StateName, DistName, City, BlockName, PO, PS, GramPanchayet, Village, Pincode, ContactNo, MailId, BankName, BranchName, AcctNo, IFSCode, PanNo, AadharNo, JoiningAmt, WalletBalance, Status, AprovedBy, AprovalDate, AprovalNumber } = req.body;
-    const updateQuery = 'UPDATE reginfo SET ProfileImage=?, PerName=?, GuardianName=?, DOB=?, GuardianContactNo=?, StateName=?, DistName=?, City=?, BlockName=?, PO=?, PS=?, GramPanchayet=?, Village=?, Pincode=?, ContactNo=?, MailId=?, BankName=?, BranchName=?, AcctNo=?, IFSCode=?, PanNo=?, AadharNo=?, JoiningAmt=?, WalletBalance=?, Status=?, AprovedBy=?, AprovalDate=?, AprovalNumber=? WHERE RegInfoId=?';
-    db.query(updateQuery, [ProfileImage, PerName, GuardianName, DOB, GuardianContactNo, StateName, DistName, City, BlockName, PO, PS, GramPanchayet, Village, Pincode, ContactNo, MailId, BankName, BranchName, AcctNo, IFSCode, PanNo, AadharNo, JoiningAmt, WalletBalance, Status, AprovedBy, AprovalDate, AprovalNumber, RegInfoId], (err) => {
+    const { ProfileImage, PerName, GuardianName, DOB, GuardianContactNo, StateName, DistName, City, BlockName, PO, PS, GramPanchayet, Village, Pincode, ContactNo, MailId, BankName, BranchName, AcctNo, IFSCode, PanNo, AadharNo, JoiningAmt, WalletBalance, Status, AprovedBy, AprovalDate, AprovalNumber, CreatedBy } = req.body;
+    const updateQuery = 'UPDATE reginfo SET ProfileImage=?, PerName=?, GuardianName=?, DOB=?, GuardianContactNo=?, StateName=?, DistName=?, City=?, BlockName=?, PO=?, PS=?, GramPanchayet=?, Village=?, Pincode=?, ContactNo=?, MailId=?, BankName=?, BranchName=?, AcctNo=?, IFSCode=?, PanNo=?, AadharNo=?, JoiningAmt=?, WalletBalance=?, Status=?, AprovedBy=?, AprovalDate=?, AprovalNumber=?, CreatedBy=? WHERE RegInfoId=?';
+    db.query(updateQuery, [ProfileImage, PerName, GuardianName, DOB, GuardianContactNo, StateName, DistName, City, BlockName, PO, PS, GramPanchayet, Village, Pincode, ContactNo, MailId, BankName, BranchName, AcctNo, IFSCode, PanNo, AadharNo, JoiningAmt, WalletBalance, Status, AprovedBy, AprovalDate, AprovalNumber, CreatedBy, RegInfoId], (err) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json({ message: 'User updated successfully' });
     });

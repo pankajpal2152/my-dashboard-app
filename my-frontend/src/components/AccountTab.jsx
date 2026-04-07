@@ -108,7 +108,6 @@ const EditMemberModal = ({ member, onClose, onSuccess }) => {
     const [profileImage, setProfileImage] = useState(member.ProfileImage || DUMMY_AVATAR);
     const fileInputRef = useRef(null);
 
-    // Map backend data perfectly to our frontend schema using the NEW column names
     const defaultState = indianStates.find(s => s.label === member.StateName) || null;
     const defaultDistrictOptions = defaultState ? City.getCitiesOfState('IN', defaultState.value).map(c => ({ value: c.name, label: c.name })) : [];
     const defaultDistrict = defaultDistrictOptions.find(c => c.label === member.DistName) || null;
@@ -167,7 +166,10 @@ const EditMemberModal = ({ member, onClose, onSuccess }) => {
         const stateName = data.state ? data.state.label : "";
         const districtName = data.district ? data.district.label : "";
 
-        // Construct payload mimicking the exact database schema using NEW column names
+        // Fetch current logged in user just in case we need a fallback
+        const userStr = localStorage.getItem('loggedInUser');
+        const loggedInUser = userStr ? JSON.parse(userStr) : null;
+
         const dbPayload = {
             ...member,
             ProfileImage: profileImage === DUMMY_AVATAR ? null : profileImage,
@@ -194,6 +196,8 @@ const EditMemberModal = ({ member, onClose, onSuccess }) => {
             AadharNo: data.aadharNo,
             JoiningAmt: parseInt(data.joiningAmount) || 0,
             WalletBalance: parseInt(data.walletBalance) || 0,
+            // Keep original creator, or fallback to current user if missing
+            CreatedBy: member.CreatedBy || (loggedInUser ? loggedInUser.email : "")
         };
 
         if (dbPayload.DOB) dbPayload.DOB = dbPayload.DOB.substring(0, 10);
@@ -364,7 +368,7 @@ const AccountTab = () => {
         resolver: zodResolver(accountSchema),
         mode: 'onChange',
         defaultValues: {
-            joiningAmount: '105',
+            joiningAmount: '0',
             walletBalance: '27000',
             fullName: '', sdwOf: '', dob: '', guardianContactNo: '',
             state: null, district: null, city: '', block: '', postOffice: '', policeStation: '', gramPanchayet: '', village: '', pinCode: '', mobileNo: '', email: '',
@@ -397,7 +401,11 @@ const AccountTab = () => {
         const stateName = data.state ? data.state.label : "";
         const districtName = data.district ? data.district.label : "";
 
-        // SENDING NEW COLUMN NAMES
+        // --- FETCH USER DYNAMICALLY ON SUBMIT TO PREVENT NULL ISSUE ---
+        const userStr = localStorage.getItem('loggedInUser');
+        const loggedInUser = userStr ? JSON.parse(userStr) : null;
+        const currentUserEmail = loggedInUser ? loggedInUser.email : "";
+
         const dbPayload = {
             ProfileImage: profileImage === DUMMY_AVATAR ? null : profileImage,
             PerName: data.fullName,
@@ -426,7 +434,8 @@ const AccountTab = () => {
             Status: 1,
             AprovedBy: null,
             AprovalDate: null,
-            AprovalNumber: null
+            AprovalNumber: null,
+            CreatedBy: currentUserEmail // Assign the correctly fetched email
         };
 
         try {
@@ -593,6 +602,7 @@ const MembersTable = ({ refreshTrigger }) => {
     const [loading, setLoading] = useState(true);
     const [userRole, setUserRole] = useState('');
     const [userName, setUserName] = useState('');
+    const [userEmail, setUserEmail] = useState('');
 
     // Pagination States
     const [currentPage, setCurrentPage] = useState(1);
@@ -617,6 +627,7 @@ const MembersTable = ({ refreshTrigger }) => {
                 const user = JSON.parse(userStr);
                 setUserRole(user.role || '');
                 setUserName(user.username || '');
+                setUserEmail(user.email || '');
             } catch (e) {
                 console.error("Error parsing user data");
             }
@@ -627,7 +638,18 @@ const MembersTable = ({ refreshTrigger }) => {
         setLoading(true);
         try {
             const res = await fetch('https://my-dashboard-app-ky8v.onrender.com/RegInfo');
-            const data = await res.json();
+            let data = await res.json();
+
+            // --- ADDED FILTER LOGIC FOR ASTHA DIDI ---
+            const userStr = localStorage.getItem('loggedInUser');
+            if (userStr) {
+                const user = JSON.parse(userStr);
+                if (user.role === 'Astha Didi') {
+                    // Filter down to only rows strictly created by this specific Astha Didi's email
+                    data = data.filter(member => member.CreatedBy === user.email);
+                }
+            }
+
             setMembers(data);
         } catch (error) {
             console.error("Failed to fetch members", error);
@@ -814,7 +836,6 @@ const MembersTable = ({ refreshTrigger }) => {
                                             <td style={styles.td}>{row.PerName}</td>
                                             <td style={styles.td}>{row.ContactNo}</td>
                                             <td style={styles.td}>{row.MailId}</td>
-                                            {/* UPDATED ROW KEYS */}
                                             <td style={styles.td}>{row.StateName}</td>
                                             <td style={styles.td}>{row.DistName}</td>
                                             <td style={{ ...styles.td, color: row.Status === 2 ? 'green' : 'orange', fontWeight: 'bold' }}>{row.Status === 2 ? 'Approved' : 'Pending'}</td>
@@ -911,16 +932,13 @@ const MembersTable = ({ refreshTrigger }) => {
                             <h6 style={styles.sectionHeader}>Personal Details</h6>
                             <div style={styles.formGrid}>
                                 <FormInput label="Full Name" value={selectedRow.PerName || ''} disabled readOnly />
-                                {/* UPDATED KEYS */}
                                 <FormInput label="S/D/W of" value={selectedRow.GuardianName || ''} disabled readOnly />
                                 <FormInput label="Date of Birth" value={selectedRow.DOB ? selectedRow.DOB.substring(0, 10) : ''} disabled readOnly />
-                                {/* UPDATED KEYS */}
                                 <FormInput label="Guardian Contact no" value={selectedRow.GuardianContactNo || ''} disabled readOnly />
                             </div>
 
                             <h6 style={styles.sectionHeader}>Postal Address Information</h6>
                             <div style={styles.formGrid}>
-                                {/* UPDATED KEYS */}
                                 <FormInput label="State" value={selectedRow.StateName || ''} disabled readOnly />
                                 <FormInput label="District" value={selectedRow.DistName || ''} disabled readOnly />
                                 <FormInput label="City" value={selectedRow.City || ''} disabled readOnly />
