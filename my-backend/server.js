@@ -64,36 +64,43 @@ db.connect((err) => {
         }
     });
 
-    // 4. Auto-create Client's reginfo table (UPDATED SCHEMA FOR STRINGS & CITY)
+    // 4. Auto-create Client's reginfo table (UPDATED SCHEMA WITH NEW COLUMN NAMES)
     const createRegInfoTable = `
         CREATE TABLE IF NOT EXISTS reginfo (
             RegInfoId int(11) NOT NULL AUTO_INCREMENT,
             ProfileImage LONGTEXT DEFAULT NULL,
-            PerName varchar(30) DEFAULT NULL, FathersName varchar(30) DEFAULT NULL,
-            DOB date DEFAULT NULL, NomineeName varchar(50) DEFAULT NULL,
-            StateId varchar(100) DEFAULT NULL, DistId varchar(100) DEFAULT NULL, City varchar(100) DEFAULT NULL,
+            PerName varchar(30) DEFAULT NULL, GuardianName varchar(30) DEFAULT NULL,
+            DOB date DEFAULT NULL, GuardianContactNo varchar(50) DEFAULT NULL,
+            StateName varchar(100) DEFAULT NULL, DistName varchar(100) DEFAULT NULL, City varchar(100) DEFAULT NULL,
             BlockName varchar(30) DEFAULT NULL, PO varchar(50) DEFAULT NULL,
-            PS varchar(30) DEFAULT NULL, Village varchar(50) DEFAULT NULL,
+            PS varchar(30) DEFAULT NULL, GramPanchayet varchar(50) DEFAULT NULL, Village varchar(50) DEFAULT NULL,
             Pincode int(11) DEFAULT NULL, ContactNo varchar(12) DEFAULT NULL,
             MailId varchar(50) DEFAULT NULL, BankName varchar(30) DEFAULT NULL,
             BranchName varchar(30) DEFAULT NULL, AcctNo varchar(30) DEFAULT NULL,
             IFSCode varchar(15) DEFAULT NULL, PanNo varchar(20) DEFAULT NULL,
             AadharNo varchar(15) DEFAULT NULL, JoiningAmt int(11) DEFAULT NULL,
             WalletBalance int(11) DEFAULT NULL, Status int(1) DEFAULT 1,
-            AprovedBy int(11) DEFAULT NULL, AprovalDate date DEFAULT NULL,
+            AprovedBy varchar(255) DEFAULT NULL, AprovalDate date DEFAULT NULL,
             AprovalNumber int(11) DEFAULT NULL,
             PRIMARY KEY (RegInfoId)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     `;
     db.query(createRegInfoTable, () => { });
 
-    // 5. MAGIC FIXES: Modify existing DB columns to accept Text Strings instead of Integers
-    db.query("ALTER TABLE reginfo MODIFY COLUMN StateId VARCHAR(100)", () => { });
-    db.query("ALTER TABLE reginfo MODIFY COLUMN DistId VARCHAR(100)", () => { });
+    // 5. MAGIC FIXES: Rename old columns to new columns automatically so you don't lose data
+    db.query("ALTER TABLE reginfo RENAME COLUMN FathersName TO GuardianName", () => { });
+    db.query("ALTER TABLE reginfo RENAME COLUMN NomineeName TO GuardianContactNo", () => { });
+    db.query("ALTER TABLE reginfo RENAME COLUMN StateId TO StateName", () => { });
+    db.query("ALTER TABLE reginfo RENAME COLUMN DistId TO DistName", () => { });
+
+    // Ensure all text columns exist and are formatted correctly
+    db.query("ALTER TABLE reginfo MODIFY COLUMN StateName VARCHAR(100)", () => { });
+    db.query("ALTER TABLE reginfo MODIFY COLUMN DistName VARCHAR(100)", () => { });
     db.query("ALTER TABLE reginfo ADD COLUMN City VARCHAR(100) DEFAULT NULL", () => { });
+    db.query("ALTER TABLE reginfo ADD COLUMN GramPanchayet VARCHAR(50) DEFAULT NULL", () => { });
     db.query("ALTER TABLE reginfo ADD COLUMN ProfileImage LONGTEXT DEFAULT NULL", () => { });
     db.query("ALTER TABLE reginfo ADD COLUMN Status int(1) DEFAULT 1", () => { });
-    db.query("ALTER TABLE reginfo ADD COLUMN AprovedBy int(11) DEFAULT NULL", () => { });
+    db.query("ALTER TABLE reginfo MODIFY COLUMN AprovedBy VARCHAR(255) DEFAULT NULL", () => { });
     db.query("ALTER TABLE reginfo ADD COLUMN AprovalDate date DEFAULT NULL", () => { });
     db.query("ALTER TABLE reginfo ADD COLUMN AprovalNumber int(11) DEFAULT NULL", () => { });
 });
@@ -158,10 +165,9 @@ app.get('/RegInfo/:RegInfoId', (req, res) => {
 });
 
 app.post('/RegInfo', (req, res) => {
-    // NEW: Capturing City and inserting it
-    const { ProfileImage, PerName, FathersName, DOB, NomineeName, StateId, DistId, City, BlockName, PO, PS, Village, Pincode, ContactNo, MailId, BankName, BranchName, AcctNo, IFSCode, PanNo, AadharNo, JoiningAmt, WalletBalance, Status, AprovedBy, AprovalDate, AprovalNumber } = req.body;
-    const insertQuery = 'INSERT INTO reginfo (ProfileImage,PerName,FathersName,DOB,NomineeName,StateId,DistId,City,BlockName,PO,PS,Village,Pincode,ContactNo,MailId,BankName,BranchName,AcctNo,IFSCode,PanNo,AadharNo,JoiningAmt,WalletBalance,Status,AprovedBy,AprovalDate,AprovalNumber) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)';
-    db.query(insertQuery, [ProfileImage, PerName, FathersName, DOB, NomineeName, StateId, DistId, City, BlockName, PO, PS, Village, Pincode, ContactNo, MailId, BankName, BranchName, AcctNo, IFSCode, PanNo, AadharNo, JoiningAmt, WalletBalance, Status, AprovedBy, AprovalDate, AprovalNumber], (err, result) => {
+    const { ProfileImage, PerName, GuardianName, DOB, GuardianContactNo, StateName, DistName, City, BlockName, PO, PS, GramPanchayet, Village, Pincode, ContactNo, MailId, BankName, BranchName, AcctNo, IFSCode, PanNo, AadharNo, JoiningAmt, WalletBalance, Status, AprovedBy, AprovalDate, AprovalNumber } = req.body;
+    const insertQuery = 'INSERT INTO reginfo (ProfileImage,PerName,GuardianName,DOB,GuardianContactNo,StateName,DistName,City,BlockName,PO,PS,GramPanchayet,Village,Pincode,ContactNo,MailId,BankName,BranchName,AcctNo,IFSCode,PanNo,AadharNo,JoiningAmt,WalletBalance,Status,AprovedBy,AprovalDate,AprovalNumber) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)';
+    db.query(insertQuery, [ProfileImage, PerName, GuardianName, DOB, GuardianContactNo, StateName, DistName, City, BlockName, PO, PS, GramPanchayet, Village, Pincode, ContactNo, MailId, BankName, BranchName, AcctNo, IFSCode, PanNo, AadharNo, JoiningAmt, WalletBalance, Status, AprovedBy, AprovalDate, AprovalNumber], (err, result) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json({ message: 'User added successfully', id: result.insertId });
     });
@@ -169,10 +175,9 @@ app.post('/RegInfo', (req, res) => {
 
 app.put('/RegInfo/:RegInfoId', (req, res) => {
     const { RegInfoId } = req.params;
-    // NEW: Capturing City and updating it
-    const { ProfileImage, PerName, FathersName, DOB, NomineeName, StateId, DistId, City, BlockName, PO, PS, Village, Pincode, ContactNo, MailId, BankName, BranchName, AcctNo, IFSCode, PanNo, AadharNo, JoiningAmt, WalletBalance, Status, AprovedBy, AprovalDate, AprovalNumber } = req.body;
-    const updateQuery = 'UPDATE reginfo SET ProfileImage=?, PerName=?, FathersName=?, DOB=?, NomineeName=?, StateId=?, DistId=?, City=?, BlockName=?, PO=?, PS=?, Village=?, Pincode=?, ContactNo=?, MailId=?, BankName=?, BranchName=?, AcctNo=?, IFSCode=?, PanNo=?, AadharNo=?, JoiningAmt=?, WalletBalance=?, Status=?, AprovedBy=?, AprovalDate=?, AprovalNumber=? WHERE RegInfoId=?';
-    db.query(updateQuery, [ProfileImage, PerName, FathersName, DOB, NomineeName, StateId, DistId, City, BlockName, PO, PS, Village, Pincode, ContactNo, MailId, BankName, BranchName, AcctNo, IFSCode, PanNo, AadharNo, JoiningAmt, WalletBalance, Status, AprovedBy, AprovalDate, AprovalNumber, RegInfoId], (err) => {
+    const { ProfileImage, PerName, GuardianName, DOB, GuardianContactNo, StateName, DistName, City, BlockName, PO, PS, GramPanchayet, Village, Pincode, ContactNo, MailId, BankName, BranchName, AcctNo, IFSCode, PanNo, AadharNo, JoiningAmt, WalletBalance, Status, AprovedBy, AprovalDate, AprovalNumber } = req.body;
+    const updateQuery = 'UPDATE reginfo SET ProfileImage=?, PerName=?, GuardianName=?, DOB=?, GuardianContactNo=?, StateName=?, DistName=?, City=?, BlockName=?, PO=?, PS=?, GramPanchayet=?, Village=?, Pincode=?, ContactNo=?, MailId=?, BankName=?, BranchName=?, AcctNo=?, IFSCode=?, PanNo=?, AadharNo=?, JoiningAmt=?, WalletBalance=?, Status=?, AprovedBy=?, AprovalDate=?, AprovalNumber=? WHERE RegInfoId=?';
+    db.query(updateQuery, [ProfileImage, PerName, GuardianName, DOB, GuardianContactNo, StateName, DistName, City, BlockName, PO, PS, GramPanchayet, Village, Pincode, ContactNo, MailId, BankName, BranchName, AcctNo, IFSCode, PanNo, AadharNo, JoiningAmt, WalletBalance, Status, AprovedBy, AprovalDate, AprovalNumber, RegInfoId], (err) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json({ message: 'User updated successfully' });
     });

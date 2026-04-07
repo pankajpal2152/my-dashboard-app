@@ -19,7 +19,7 @@ const accountSchema = z.object({
     fullName: z.string().min(2, "Min 2 characters").max(50, "Max 50 characters").regex(/^[a-zA-Z\s]+$/, "Letters only"),
     sdwOf: z.string().optional(),
     dob: z.string().min(1, "Date of Birth is required"),
-    guardianContactNo: z.string().optional(), // Mapped to NomineeName in DB
+    guardianContactNo: z.string().optional(),
     state: z.object({ value: z.string(), label: z.string() }).nullable().optional(),
     district: z.object({ value: z.string(), label: z.string() }).nullable().optional(),
     city: z.string().optional(),
@@ -102,6 +102,257 @@ const FormInput = ({ label, id, error, placeholder, disabled, ...props }) => (
 );
 
 // ==========================================
+// 3. EDIT MODAL WITH FULL VALIDATION
+// ==========================================
+const EditMemberModal = ({ member, onClose, onSuccess }) => {
+    const [profileImage, setProfileImage] = useState(member.ProfileImage || DUMMY_AVATAR);
+    const fileInputRef = useRef(null);
+
+    // Map backend data perfectly to our frontend schema using the NEW column names
+    const defaultState = indianStates.find(s => s.label === member.StateName) || null;
+    const defaultDistrictOptions = defaultState ? City.getCitiesOfState('IN', defaultState.value).map(c => ({ value: c.name, label: c.name })) : [];
+    const defaultDistrict = defaultDistrictOptions.find(c => c.label === member.DistName) || null;
+
+    const { control, handleSubmit, watch, formState: { errors } } = useForm({
+        resolver: zodResolver(accountSchema),
+        mode: 'onChange',
+        defaultValues: {
+            joiningAmount: String(member.JoiningAmt || ''),
+            walletBalance: String(member.WalletBalance || ''),
+            fullName: member.PerName || '',
+            sdwOf: member.GuardianName || '',
+            dob: member.DOB ? member.DOB.substring(0, 10) : '',
+            guardianContactNo: member.GuardianContactNo || '',
+            state: defaultState,
+            district: defaultDistrict,
+            city: member.City || '',
+            block: member.BlockName || '',
+            postOffice: member.PO || '',
+            policeStation: member.PS || '',
+            gramPanchayet: member.GramPanchayet || '',
+            village: member.Village || '',
+            pinCode: String(member.Pincode || ''),
+            mobileNo: member.ContactNo || '',
+            email: member.MailId || '',
+            bankName: member.BankName || '',
+            branchName: member.BranchName || '',
+            accountNo: member.AcctNo || '',
+            ifsCode: member.IFSCode || '',
+            panNo: member.PanNo || '',
+            aadharNo: member.AadharNo || ''
+        }
+    });
+
+    const selectedState = watch("state");
+    const districtOptions = selectedState
+        ? City.getCitiesOfState('IN', selectedState.value).map(city => ({ value: city.name, label: city.name }))
+        : [];
+
+    const handleUploadClick = () => fileInputRef.current.click();
+    const handleFileChange = (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            if (file.size > 800000) return toast.warning("Image size exceeds 800K.");
+            const reader = new FileReader();
+            reader.onloadend = () => setProfileImage(reader.result);
+            reader.readAsDataURL(file);
+        }
+    };
+    const handleResetImage = () => {
+        setProfileImage(DUMMY_AVATAR);
+        fileInputRef.current.value = "";
+    };
+
+    const onSubmit = async (data) => {
+        const stateName = data.state ? data.state.label : "";
+        const districtName = data.district ? data.district.label : "";
+
+        // Construct payload mimicking the exact database schema using NEW column names
+        const dbPayload = {
+            ...member,
+            ProfileImage: profileImage === DUMMY_AVATAR ? null : profileImage,
+            PerName: data.fullName,
+            GuardianName: data.sdwOf || "",
+            DOB: data.dob,
+            GuardianContactNo: data.guardianContactNo || "",
+            StateName: stateName,
+            DistName: districtName,
+            City: data.city || "",
+            BlockName: data.block || "",
+            PO: data.postOffice || "",
+            PS: data.policeStation || "",
+            GramPanchayet: data.gramPanchayet || "",
+            Village: data.village || "",
+            Pincode: parseInt(data.pinCode),
+            ContactNo: data.mobileNo,
+            MailId: data.email,
+            BankName: data.bankName || "",
+            BranchName: data.branchName || "",
+            AcctNo: data.accountNo || "0",
+            IFSCode: data.ifsCode || "",
+            PanNo: data.panNo || "",
+            AadharNo: data.aadharNo,
+            JoiningAmt: parseInt(data.joiningAmount) || 0,
+            WalletBalance: parseInt(data.walletBalance) || 0,
+        };
+
+        if (dbPayload.DOB) dbPayload.DOB = dbPayload.DOB.substring(0, 10);
+        if (dbPayload.AprovalDate && dbPayload.AprovalDate.includes('T')) dbPayload.AprovalDate = dbPayload.AprovalDate.substring(0, 10);
+
+        try {
+            toast.loading("Updating member...", { toastId: 'update' });
+
+            const res = await fetch(`https://my-dashboard-app-ky8v.onrender.com/RegInfo/${member.RegInfoId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dbPayload)
+            });
+
+            toast.dismiss('update');
+
+            if (res.ok) {
+                toast.success("Member updated successfully!");
+                onSuccess();
+            } else {
+                toast.error("Failed to update.");
+            }
+        } catch (error) {
+            toast.dismiss('update');
+            toast.error("Network error.");
+        }
+    };
+
+    const onError = () => toast.error("Error: Please check the red fields.", { position: "top-right" });
+
+    return (
+        <div style={styles.modalOverlay}>
+            <div style={{ ...styles.modalContent, maxWidth: '1000px', padding: '0' }}>
+                <div style={styles.cardHeader}>
+                    <h5 style={{ margin: 0 }}>Edit Member Details</h5>
+                    <button style={styles.closeBtn} onClick={onClose}>×</button>
+                </div>
+                <div style={styles.cardBody}>
+                    <div style={styles.profileSection}>
+                        <img src={profileImage} alt="Profile Avatar" style={styles.avatar} />
+                        <div>
+                            <p style={styles.hintText}><strong>ID:</strong> #{member.RegInfoId}</p>
+                            <p style={styles.hintText}><strong>Status:</strong> {member.Status === 2 ? 'Approved' : 'Pending'}</p>
+                            {member.Status === 2 && member.AprovedBy && (
+                                <p style={styles.hintText}><strong>Approved By:</strong> {member.AprovedBy}</p>
+                            )}
+                            <div style={styles.buttonGroup}>
+                                <button type="button" style={styles.btnOutline} onClick={handleUploadClick}>Change photo</button>
+                                <button type="button" style={styles.btnOutline} onClick={handleResetImage}>Reset</button>
+                                <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/png, image/jpeg, image/gif" style={{ display: 'none' }} />
+                            </div>
+                        </div>
+                    </div>
+
+                    <form onSubmit={handleSubmit(onSubmit, onError)}>
+                        <h6 style={styles.sectionHeader}>Sponsor Information</h6>
+                        <div style={styles.formGrid}>
+                            <Controller name="joiningAmount" control={control} render={({ field }) => (
+                                <FormInput label={<>Joining Amount <span style={{ color: '#ff3e1d' }}>*</span></>} id="edit_joiningAmount" error={errors.joiningAmount} type="number" {...field} />
+                            )} />
+                            <Controller name="walletBalance" control={control} render={({ field }) => (
+                                <FormInput label={<>Wallet Balance <span style={{ color: '#ff3e1d' }}>*</span></>} id="edit_walletBalance" error={errors.walletBalance} disabled={true} readOnly {...field} />
+                            )} />
+                        </div>
+
+                        <h6 style={styles.sectionHeader}>Personal Details</h6>
+                        <div style={styles.formGrid}>
+                            <Controller name="fullName" control={control} render={({ field }) => (
+                                <FormInput label={<>Full Name <span style={{ color: '#ff3e1d' }}>*</span></>} id="edit_fullName" error={errors.fullName} type="text" maxLength={50} {...field} />
+                            )} />
+                            <Controller name="sdwOf" control={control} render={({ field }) => (
+                                <FormInput label="S/D/W of" id="edit_sdwOf" error={errors.sdwOf} type="text" maxLength={50} {...field} />
+                            )} />
+                            <Controller name="dob" control={control} render={({ field }) => (
+                                <FormInput label={<>Date of Birth <span style={{ color: '#ff3e1d' }}>*</span></>} id="edit_dob" error={errors.dob} type="date" {...field} />
+                            )} />
+                            <Controller name="guardianContactNo" control={control} render={({ field }) => (
+                                <FormInput label="Guardian Contact no" id="edit_guardianContactNo" error={errors.guardianContactNo} type="text" maxLength={50} {...field} />
+                            )} />
+                        </div>
+
+                        <h6 style={styles.sectionHeader}>Postal Address Information</h6>
+                        <div style={styles.formGrid}>
+                            <div style={styles.inputGroup}>
+                                <label style={styles.label}>Select State</label>
+                                <Controller name="state" control={control} render={({ field }) => (
+                                    <Select {...field} options={indianStates} styles={styles.selectStyles(!!errors.state)} placeholder="Select State" />
+                                )} />
+                                {errors.state && <p style={styles.errorText}>{errors.state.message}</p>}
+                            </div>
+                            <div style={styles.inputGroup}>
+                                <label style={styles.label}>District</label>
+                                <Controller name="district" control={control} render={({ field }) => (
+                                    <Select {...field} options={districtOptions} styles={styles.selectStyles(!!errors.district)} placeholder="Select District" isDisabled={!selectedState} />
+                                )} />
+                                {errors.district && <p style={styles.errorText}>{errors.district.message}</p>}
+                            </div>
+                            <Controller name="city" control={control} render={({ field }) => (
+                                <FormInput label="City" id="edit_city" error={errors.city} type="text" maxLength={50} {...field} />
+                            )} />
+                            <Controller name="block" control={control} render={({ field }) => (
+                                <FormInput label="Block" id="edit_block" error={errors.block} type="text" maxLength={50} {...field} />
+                            )} />
+                            <Controller name="postOffice" control={control} render={({ field }) => (
+                                <FormInput label="Post Office" id="edit_postOffice" error={errors.postOffice} type="text" maxLength={50} {...field} />
+                            )} />
+                            <Controller name="policeStation" control={control} render={({ field }) => (
+                                <FormInput label="Police Station" id="edit_policeStation" error={errors.policeStation} type="text" maxLength={50} {...field} />
+                            )} />
+                            <Controller name="gramPanchayet" control={control} render={({ field }) => (
+                                <FormInput label="Gram Panchayet" id="edit_gramPanchayet" error={errors.gramPanchayet} type="text" maxLength={50} {...field} />
+                            )} />
+                            <Controller name="village" control={control} render={({ field }) => (
+                                <FormInput label="Village" id="edit_village" error={errors.village} type="text" maxLength={50} {...field} />
+                            )} />
+                            <Controller name="pinCode" control={control} render={({ field }) => (
+                                <FormInput label={<>Pin Code <span style={{ color: '#ff3e1d' }}>*</span></>} id="edit_pinCode" error={errors.pinCode} type="text" maxLength={6} {...field} />
+                            )} />
+                            <Controller name="mobileNo" control={control} render={({ field }) => (
+                                <FormInput label={<>Contact Number <span style={{ color: '#ff3e1d' }}>*</span></>} id="edit_mobileNo" error={errors.mobileNo} type="tel" maxLength={15} {...field} />
+                            )} />
+                            <Controller name="email" control={control} render={({ field }) => (
+                                <FormInput label={<>Email ID <span style={{ color: '#ff3e1d' }}>*</span></>} id="edit_email" error={errors.email} type="email" maxLength={100} {...field} />
+                            )} />
+                        </div>
+
+                        <h6 style={styles.sectionHeader}>Banking & Payment Details</h6>
+                        <div style={styles.formGrid}>
+                            <Controller name="bankName" control={control} render={({ field }) => (
+                                <FormInput label="Bank Name" id="edit_bankName" error={errors.bankName} type="text" maxLength={100} {...field} />
+                            )} />
+                            <Controller name="branchName" control={control} render={({ field }) => (
+                                <FormInput label="Branch Name" id="edit_branchName" error={errors.branchName} type="text" maxLength={100} {...field} />
+                            )} />
+                            <Controller name="accountNo" control={control} render={({ field }) => (
+                                <FormInput label="Account No" id="edit_accountNo" error={errors.accountNo} type="text" maxLength={30} {...field} />
+                            )} />
+                            <Controller name="ifsCode" control={control} render={({ field }) => (
+                                <FormInput label="IFS Code" id="edit_ifsCode" error={errors.ifsCode} type="text" maxLength={20} {...field} />
+                            )} />
+                            <Controller name="panNo" control={control} render={({ field }) => (
+                                <FormInput label="PAN No" id="edit_panNo" error={errors.panNo} type="text" maxLength={10} {...field} />
+                            )} />
+                            <Controller name="aadharNo" control={control} render={({ field }) => (
+                                <FormInput label={<>Aadhar No. <span style={{ color: '#ff3e1d' }}>*</span></>} id="edit_aadharNo" error={errors.aadharNo} type="text" maxLength={12} {...field} />
+                            )} />
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '32px' }}>
+                            <button type="submit" style={styles.btnPrimary}>Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// ==========================================
 // MAIN COMPONENT: ACCOUNT TAB
 // ==========================================
 const AccountTab = () => {
@@ -146,18 +397,20 @@ const AccountTab = () => {
         const stateName = data.state ? data.state.label : "";
         const districtName = data.district ? data.district.label : "";
 
+        // SENDING NEW COLUMN NAMES
         const dbPayload = {
             ProfileImage: profileImage === DUMMY_AVATAR ? null : profileImage,
             PerName: data.fullName,
-            FathersName: data.sdwOf || "",
+            GuardianName: data.sdwOf || "",
             DOB: data.dob,
-            NomineeName: data.guardianContactNo || "", // Sends Guardian Contact as NomineeName
-            StateId: stateName,
-            DistId: districtName,
+            GuardianContactNo: data.guardianContactNo || "",
+            StateName: stateName,
+            DistName: districtName,
             City: data.city || "",
             BlockName: data.block || "",
             PO: data.postOffice || "",
             PS: data.policeStation || "",
+            GramPanchayet: data.gramPanchayet || "",
             Village: data.village || "",
             Pincode: parseInt(data.pinCode),
             ContactNo: data.mobileNo,
@@ -203,12 +456,6 @@ const AccountTab = () => {
     };
 
     const onError = () => toast.error("Error: Please check the red fields.", { position: "top-right" });
-
-    // Commented out to fix the unused variable warning, since the corresponding JSX is also commented out
-    // const onDeactivate = (data) => {
-    //     if (!data.deactivateConfirm) return toast.warning("Please confirm deactivation.");
-    //     toast.error("Account Deactivated successfully. Logging out...");
-    // };
 
     return (
         <>
@@ -334,37 +581,18 @@ const AccountTab = () => {
             {/* --- MEMBERS DATA TABLE --- */}
             <MembersTable refreshTrigger={refreshTrigger} />
 
-            {/* <div style={styles.card}>
-                <div style={styles.cardHeader}>
-                    <h5>Delete Account</h5>
-                </div>
-                <div style={styles.cardBody}>
-                    <div style={styles.warningBox}>
-                        <h6 style={styles.warningTitle}>Are you sure you want to delete your account?</h6>
-                        <p style={styles.warningText}>Once you delete your account, there is no going back. Please be certain.</p>
-                    </div>
-
-                    <form onSubmit={handleSubmit(onDeactivate)}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px' }}>
-                            <input type="checkbox" id="deactivateConfirm" {...register("deactivateConfirm")} style={{ width: '16px', height: '16px', cursor: 'pointer' }} />
-                            <label htmlFor="deactivateConfirm" style={{ fontSize: '0.9375rem', color: '#697a8d', cursor: 'pointer' }}>
-                                I confirm my account deactivation
-                            </label>
-                        </div>
-                        <button type="submit" style={styles.btnDanger}>Deactivate Account</button>
-                    </form>
-                </div>
-            </div> */}
         </>
     );
 };
 
 // ==========================================
-// DATA TABLE COMPONENT (View, Edit, Delete, Approve, Pagination & Sorting)
+// DATA TABLE COMPONENT (View, Delete, Approve, Pagination & Sorting)
 // ==========================================
 const MembersTable = ({ refreshTrigger }) => {
     const [members, setMembers] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [userRole, setUserRole] = useState('');
+    const [userName, setUserName] = useState('');
 
     // Pagination States
     const [currentPage, setCurrentPage] = useState(1);
@@ -380,6 +608,20 @@ const MembersTable = ({ refreshTrigger }) => {
     const [approveModal, setApproveModal] = useState(false);
 
     const [selectedRow, setSelectedRow] = useState(null);
+
+    // Check localStorage for the logged-in user's role on component mount
+    useEffect(() => {
+        const userStr = localStorage.getItem('loggedInUser');
+        if (userStr) {
+            try {
+                const user = JSON.parse(userStr);
+                setUserRole(user.role || '');
+                setUserName(user.username || '');
+            } catch (e) {
+                console.error("Error parsing user data");
+            }
+        }
+    }, []);
 
     const fetchMembers = async () => {
         setLoading(true);
@@ -409,7 +651,6 @@ const MembersTable = ({ refreshTrigger }) => {
                 if (aVal === null || aVal === undefined) aVal = '';
                 if (bVal === null || bVal === undefined) bVal = '';
 
-                // Handle text comparisons safely without breaking numbers
                 if (typeof aVal === 'string') aVal = aVal.toLowerCase();
                 if (typeof bVal === 'string') bVal = bVal.toLowerCase();
 
@@ -440,7 +681,6 @@ const MembersTable = ({ refreshTrigger }) => {
     const totalPages = Math.max(1, Math.ceil(sortedMembers.length / rowsPerPage));
 
     useEffect(() => {
-        // Reset to page 1 if data shrinks and we are on a non-existent page
         if (currentPage > totalPages) setCurrentPage(1);
     }, [sortedMembers.length, totalPages, currentPage]);
 
@@ -452,12 +692,12 @@ const MembersTable = ({ refreshTrigger }) => {
     const handlePrevPage = () => setCurrentPage((prev) => Math.max(prev - 1, 1));
     const handleRowsChange = (e) => {
         setRowsPerPage(Number(e.target.value));
-        setCurrentPage(1); // Reset to page 1 when changing rows per page
+        setCurrentPage(1);
     };
 
     // Modal Actions
     const openModal = (type, member) => {
-        setSelectedRow({ ...member }); // Clone the object
+        setSelectedRow({ ...member });
         if (type === 'view') setViewModal(true);
         if (type === 'edit') setEditModal(true);
         if (type === 'delete') setDeleteModal(true);
@@ -467,27 +707,6 @@ const MembersTable = ({ refreshTrigger }) => {
     const closeModal = () => {
         setViewModal(false); setEditModal(false); setDeleteModal(false); setApproveModal(false);
         setSelectedRow(null);
-    };
-
-    const handleEditChange = (e) => {
-        setSelectedRow({ ...selectedRow, [e.target.name]: e.target.value });
-    };
-
-    const submitEdit = async () => {
-        try {
-            toast.loading("Updating member...", { toastId: 'update' });
-            const res = await fetch(`https://my-dashboard-app-ky8v.onrender.com/RegInfo/${selectedRow.RegInfoId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(selectedRow)
-            });
-            toast.dismiss('update');
-            if (res.ok) {
-                toast.success("Member updated successfully!");
-                closeModal();
-                fetchMembers();
-            } else toast.error("Failed to update.");
-        } catch (error) { toast.dismiss('update'); toast.error("Network error."); }
     };
 
     const confirmDelete = async () => {
@@ -506,10 +725,17 @@ const MembersTable = ({ refreshTrigger }) => {
     const confirmApprove = async () => {
         try {
             toast.loading("Approving...", { toastId: 'approve' });
-            const approvalId = Math.floor(100000000000 + Math.random() * 900000000000);
+
+            const approvalId = Math.floor(100000 + Math.random() * 900000);
             const dateStr = new Date().toISOString().split('T')[0];
 
-            const payload = { ...selectedRow, Status: 2, AprovalNumber: approvalId, AprovalDate: dateStr };
+            const approverString = userName && userRole ? `${userName} (${userRole})` : 'System Admin';
+
+            const payload = { ...selectedRow, Status: 2, AprovalNumber: approvalId, AprovalDate: dateStr, AprovedBy: approverString };
+
+            if (payload.DOB) {
+                payload.DOB = payload.DOB.substring(0, 10);
+            }
 
             const res = await fetch(`https://my-dashboard-app-ky8v.onrender.com/RegInfo/${selectedRow.RegInfoId}`, {
                 method: 'PUT',
@@ -526,7 +752,6 @@ const MembersTable = ({ refreshTrigger }) => {
         } catch (error) { toast.dismiss('approve'); toast.error("Network error."); }
     };
 
-    // Helper to render sortable headers
     const renderTh = (label, key, isStickyLeft = false, isStickyRight = false) => {
         let thStyle = { ...styles.th };
         if (isStickyLeft) thStyle = { ...styles.stickyLeftTh };
@@ -562,13 +787,16 @@ const MembersTable = ({ refreshTrigger }) => {
                                         {renderTh('Full Name', 'PerName')}
                                         {renderTh('Mobile No', 'ContactNo')}
                                         {renderTh('Email', 'MailId')}
-                                        {renderTh('State', 'StateId')}
-                                        {renderTh('District', 'DistId')}
+                                        {/* UPDATED TABLE HEADERS */}
+                                        {renderTh('State', 'StateName')}
+                                        {renderTh('District', 'DistName')}
                                         {renderTh('Status', 'Status')}
+                                        {renderTh('Approved By', 'AprovedBy')}
                                         {renderTh('DOB', 'DOB')}
                                         {renderTh('Aadhar', 'AadharNo')}
                                         {renderTh('PAN', 'PanNo')}
                                         {renderTh('City', 'City')}
+                                        {renderTh('Gram Panchayet', 'GramPanchayet')}
                                         {renderTh('Joining Amt', 'JoiningAmt')}
 
                                         {/* STICKY RIGHT HEADER */}
@@ -578,10 +806,7 @@ const MembersTable = ({ refreshTrigger }) => {
                                 <tbody>
                                     {currentMembers.map((row) => (
                                         <tr key={row.RegInfoId}>
-                                            {/* STICKY LEFT DATA */}
                                             <td style={styles.stickyLeftTd}>#{row.RegInfoId}</td>
-
-                                            {/* SCROLLABLE MIDDLE DATA */}
                                             <td style={styles.td}>
                                                 <img src={row.ProfileImage || DUMMY_AVATAR} alt="User" style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }} />
                                             </td>
@@ -589,27 +814,33 @@ const MembersTable = ({ refreshTrigger }) => {
                                             <td style={styles.td}>{row.PerName}</td>
                                             <td style={styles.td}>{row.ContactNo}</td>
                                             <td style={styles.td}>{row.MailId}</td>
-                                            <td style={styles.td}>{row.StateId}</td>
-                                            <td style={styles.td}>{row.DistId}</td>
+                                            {/* UPDATED ROW KEYS */}
+                                            <td style={styles.td}>{row.StateName}</td>
+                                            <td style={styles.td}>{row.DistName}</td>
                                             <td style={{ ...styles.td, color: row.Status === 2 ? 'green' : 'orange', fontWeight: 'bold' }}>{row.Status === 2 ? 'Approved' : 'Pending'}</td>
+                                            <td style={styles.td}>{row.AprovedBy || '-'}</td>
                                             <td style={styles.td}>{row.DOB ? row.DOB.substring(0, 10) : ''}</td>
                                             <td style={styles.td}>{row.AadharNo}</td>
                                             <td style={styles.td}>{row.PanNo}</td>
                                             <td style={styles.td}>{row.City || row.Village}</td>
+                                            <td style={styles.td}>{row.GramPanchayet || '-'}</td>
                                             <td style={styles.td}>₹{row.JoiningAmt}</td>
 
-                                            {/* STICKY RIGHT DATA */}
                                             <td style={styles.stickyRightTd}>
                                                 <button onClick={() => openModal('view', row)} style={styles.actionBtn} title="View">👁️</button>
                                                 <button onClick={() => openModal('edit', row)} style={styles.actionBtn} title="Edit">✏️</button>
-                                                {/* <button onClick={() => openModal('delete', row)} style={styles.actionBtn} title="Delete">🗑️</button> */}
-                                                {row.Status !== 2 && (
+
+                                                {userRole !== 'Astha Didi' && (
+                                                    <button onClick={() => openModal('delete', row)} style={styles.actionBtn} title="Delete">🗑️</button>
+                                                )}
+
+                                                {row.Status !== 2 && userRole !== 'Astha Didi' && (
                                                     <button onClick={() => openModal('approve', row)} style={styles.actionBtn} title="Approve">✅</button>
                                                 )}
                                             </td>
                                         </tr>
                                     ))}
-                                    {currentMembers.length === 0 && <tr><td colSpan="15" style={{ ...styles.td, textAlign: 'center' }}>No members found in database.</td></tr>}
+                                    {currentMembers.length === 0 && <tr><td colSpan="17" style={{ ...styles.td, textAlign: 'center' }}>No members found in database.</td></tr>}
                                 </tbody>
                             </table>
                         </div>
@@ -665,6 +896,9 @@ const MembersTable = ({ refreshTrigger }) => {
                                     <p style={styles.hintText}><strong>ID:</strong> #{selectedRow.RegInfoId}</p>
                                     <p style={styles.hintText}><strong>Approval No:</strong> {selectedRow.AprovalNumber || 'Pending'}</p>
                                     <p style={styles.hintText}><strong>Status:</strong> {selectedRow.Status === 2 ? 'Approved' : 'Pending'}</p>
+                                    {selectedRow.Status === 2 && selectedRow.AprovedBy && (
+                                        <p style={styles.hintText}><strong>Approved By:</strong> {selectedRow.AprovedBy}</p>
+                                    )}
                                 </div>
                             </div>
 
@@ -677,21 +911,23 @@ const MembersTable = ({ refreshTrigger }) => {
                             <h6 style={styles.sectionHeader}>Personal Details</h6>
                             <div style={styles.formGrid}>
                                 <FormInput label="Full Name" value={selectedRow.PerName || ''} disabled readOnly />
-                                <FormInput label="S/D/W of" value={selectedRow.FathersName || ''} disabled readOnly />
+                                {/* UPDATED KEYS */}
+                                <FormInput label="S/D/W of" value={selectedRow.GuardianName || ''} disabled readOnly />
                                 <FormInput label="Date of Birth" value={selectedRow.DOB ? selectedRow.DOB.substring(0, 10) : ''} disabled readOnly />
-                                {/* Mapped to NomineeName under the hood */}
-                                <FormInput label="Guardian Contact no" value={selectedRow.NomineeName || ''} disabled readOnly />
+                                {/* UPDATED KEYS */}
+                                <FormInput label="Guardian Contact no" value={selectedRow.GuardianContactNo || ''} disabled readOnly />
                             </div>
 
                             <h6 style={styles.sectionHeader}>Postal Address Information</h6>
                             <div style={styles.formGrid}>
-                                <FormInput label="State" value={selectedRow.StateId || ''} disabled readOnly />
-                                <FormInput label="District" value={selectedRow.DistId || ''} disabled readOnly />
+                                {/* UPDATED KEYS */}
+                                <FormInput label="State" value={selectedRow.StateName || ''} disabled readOnly />
+                                <FormInput label="District" value={selectedRow.DistName || ''} disabled readOnly />
                                 <FormInput label="City" value={selectedRow.City || ''} disabled readOnly />
                                 <FormInput label="Block" value={selectedRow.BlockName || ''} disabled readOnly />
                                 <FormInput label="Post Office" value={selectedRow.PO || ''} disabled readOnly />
                                 <FormInput label="Police Station" value={selectedRow.PS || ''} disabled readOnly />
-                                <FormInput label="Gram Panchayet" value={selectedRow.Village || ''} disabled readOnly />
+                                <FormInput label="Gram Panchayet" value={selectedRow.GramPanchayet || ''} disabled readOnly />
                                 <FormInput label="Village" value={selectedRow.Village || ''} disabled readOnly />
                                 <FormInput label="Pin Code" value={selectedRow.Pincode || ''} disabled readOnly />
                                 <FormInput label="Contact Number" value={selectedRow.ContactNo || ''} disabled readOnly />
@@ -712,69 +948,13 @@ const MembersTable = ({ refreshTrigger }) => {
                 </div>
             )}
 
-            {/* EDIT MODAL */}
+            {/* EDIT MODAL WITH NEW COMPONENT */}
             {editModal && selectedRow && (
-                <div style={styles.modalOverlay}>
-                    <div style={{ ...styles.modalContent, maxWidth: '1000px', padding: '0' }}>
-                        <div style={styles.cardHeader}>
-                            <h5 style={{ margin: 0 }}>Edit Member Details</h5>
-                            <button style={styles.closeBtn} onClick={closeModal}>×</button>
-                        </div>
-                        <div style={styles.cardBody}>
-                            <div style={styles.profileSection}>
-                                <img src={selectedRow.ProfileImage || DUMMY_AVATAR} alt="Profile Avatar" style={styles.avatar} />
-                                <div>
-                                    <p style={styles.hintText}><strong>ID:</strong> #{selectedRow.RegInfoId}</p>
-                                    <p style={styles.hintText}><strong>Approval No:</strong> {selectedRow.AprovalNumber || 'Pending'}</p>
-                                </div>
-                            </div>
-
-                            <h6 style={styles.sectionHeader}>Sponsor Information</h6>
-                            <div style={styles.formGrid}>
-                                <FormInput label="Joining Amount" name="JoiningAmt" value={selectedRow.JoiningAmt || ''} onChange={handleEditChange} type="number" />
-                                <FormInput label="Wallet Balance" name="WalletBalance" value={selectedRow.WalletBalance || ''} onChange={handleEditChange} type="number" disabled readOnly />
-                            </div>
-
-                            <h6 style={styles.sectionHeader}>Personal Details</h6>
-                            <div style={styles.formGrid}>
-                                <FormInput label="Full Name" name="PerName" value={selectedRow.PerName || ''} onChange={handleEditChange} />
-                                <FormInput label="S/D/W of" name="FathersName" value={selectedRow.FathersName || ''} onChange={handleEditChange} />
-                                <FormInput label="Date of Birth" name="DOB" value={selectedRow.DOB ? selectedRow.DOB.substring(0, 10) : ''} onChange={handleEditChange} type="date" />
-                                {/* Editing mapped NomineeName under the hood */}
-                                <FormInput label="Guardian Contact no" name="NomineeName" value={selectedRow.NomineeName || ''} onChange={handleEditChange} />
-                            </div>
-
-                            <h6 style={styles.sectionHeader}>Postal Address Information</h6>
-                            <div style={styles.formGrid}>
-                                <FormInput label="State" name="StateId" value={selectedRow.StateId || ''} onChange={handleEditChange} />
-                                <FormInput label="District" name="DistId" value={selectedRow.DistId || ''} onChange={handleEditChange} />
-                                <FormInput label="City" name="City" value={selectedRow.City || ''} onChange={handleEditChange} />
-                                <FormInput label="Block" name="BlockName" value={selectedRow.BlockName || ''} onChange={handleEditChange} />
-                                <FormInput label="Post Office" name="PO" value={selectedRow.PO || ''} onChange={handleEditChange} />
-                                <FormInput label="Police Station" name="PS" value={selectedRow.PS || ''} onChange={handleEditChange} />
-                                <FormInput label="Gram Panchayet" name="Village" value={selectedRow.Village || ''} onChange={handleEditChange} />
-                                <FormInput label="Village" name="Village" value={selectedRow.Village || ''} onChange={handleEditChange} />
-                                <FormInput label="Pin Code" name="Pincode" value={selectedRow.Pincode || ''} onChange={handleEditChange} type="number" />
-                                <FormInput label="Contact Number" name="ContactNo" value={selectedRow.ContactNo || ''} onChange={handleEditChange} />
-                                <FormInput label="Email ID" name="MailId" value={selectedRow.MailId || ''} onChange={handleEditChange} />
-                            </div>
-
-                            <h6 style={styles.sectionHeader}>Banking & Payment Details</h6>
-                            <div style={styles.formGrid}>
-                                <FormInput label="Bank Name" name="BankName" value={selectedRow.BankName || ''} onChange={handleEditChange} />
-                                <FormInput label="Branch Name" name="BranchName" value={selectedRow.BranchName || ''} onChange={handleEditChange} />
-                                <FormInput label="Account No" name="AcctNo" value={selectedRow.AcctNo || ''} onChange={handleEditChange} />
-                                <FormInput label="IFS Code" name="IFSCode" value={selectedRow.IFSCode || ''} onChange={handleEditChange} />
-                                <FormInput label="PAN No" name="PanNo" value={selectedRow.PanNo || ''} onChange={handleEditChange} />
-                                <FormInput label="Aadhar No" name="AadharNo" value={selectedRow.AadharNo || ''} onChange={handleEditChange} />
-                            </div>
-
-                            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '32px' }}>
-                                <button onClick={submitEdit} style={styles.btnPrimary}>Save Changes</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <EditMemberModal
+                    member={selectedRow}
+                    onClose={closeModal}
+                    onSuccess={() => { closeModal(); fetchMembers(); }}
+                />
             )}
 
             {/* DELETE MODAL */}
@@ -797,7 +977,7 @@ const MembersTable = ({ refreshTrigger }) => {
                     <div style={{ ...styles.modalContent, maxWidth: '400px', textAlign: 'center' }}>
                         <h4 style={{ marginTop: 0, color: '#71dd37' }}>Approve Member</h4>
                         <p>Are you sure you want to approve <strong>{selectedRow.PerName}</strong>?</p>
-                        <p style={{ fontSize: '0.85rem', color: '#a1acb8' }}>This will generate a permanent 12-digit Approval ID.</p>
+                        <p style={{ fontSize: '0.85rem', color: '#a1acb8' }}>This will generate a permanent 6-digit Approval ID.</p>
                         <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '20px', flexWrap: 'wrap' }}>
                             <button onClick={closeModal} style={styles.btnOutline}>Cancel</button>
                             <button onClick={confirmApprove} style={styles.btnSuccess}>Confirm Approval</button>
