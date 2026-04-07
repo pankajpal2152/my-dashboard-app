@@ -19,7 +19,7 @@ const accountSchema = z.object({
     fullName: z.string().min(2, "Min 2 characters").max(50, "Max 50 characters").regex(/^[a-zA-Z\s]+$/, "Letters only"),
     sdwOf: z.string().optional(),
     dob: z.string().min(1, "Date of Birth is required"),
-    guardianContactNo: z.string().optional(),
+    guardianContactNo: z.string().optional(), // Mapped to NomineeName in DB
     state: z.object({ value: z.string(), label: z.string() }).nullable().optional(),
     district: z.object({ value: z.string(), label: z.string() }).nullable().optional(),
     city: z.string().optional(),
@@ -42,7 +42,7 @@ const accountSchema = z.object({
 
 const indianStates = State.getStatesOfCountry('IN').map(state => ({ value: state.isoCode, label: state.name }));
 
-// --- 2. STYLES (UPDATED FOR RESPONSIVENESS) ---
+// --- 2. STYLES ---
 const styles = {
     card: { backgroundColor: '#ffffff', borderRadius: '8px', boxShadow: '0 2px 6px 0 rgba(67, 89, 113, 0.12)', fontFamily: '"Public Sans", sans-serif', overflow: 'hidden', marginBottom: '24px', width: '100%', boxSizing: 'border-box' },
     cardHeader: { padding: '24px', borderBottom: '1px solid #d9dee3', fontSize: '1.125rem', fontWeight: '500', color: '#566a7f', margin: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' },
@@ -87,7 +87,6 @@ const styles = {
     modalContent: { backgroundColor: '#fff', padding: '30px', borderRadius: '8px', width: '100%', maxWidth: '1000px', maxHeight: '90vh', overflowY: 'auto', position: 'relative', boxSizing: 'border-box' },
     closeBtn: { position: 'absolute', top: '15px', right: '15px', background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: '#a1acb8', zIndex: 10 },
 
-    // Pagination Styles
     paginationContainer: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', borderTop: '1px solid #d9dee3', flexWrap: 'wrap', gap: '10px', color: '#697a8d', fontSize: '0.875rem', backgroundColor: '#fff' },
     pageSelect: { padding: '4px 8px', borderRadius: '4px', border: '1px solid #d9dee3', color: '#697a8d', cursor: 'pointer', outline: 'none' },
     pageBtn: { padding: '6px 12px', marginLeft: '8px', border: '1px solid #d9dee3', backgroundColor: '#fff', borderRadius: '4px', cursor: 'pointer', color: '#697a8d' },
@@ -152,10 +151,10 @@ const AccountTab = () => {
             PerName: data.fullName,
             FathersName: data.sdwOf || "",
             DOB: data.dob,
-            NomineeName: data.guardianContactNo || "",
+            NomineeName: data.guardianContactNo || "", // Sends Guardian Contact as NomineeName
             StateId: stateName,
             DistId: districtName,
-            City: data.city || "",  // NEW: Capturing City Text!
+            City: data.city || "",
             BlockName: data.block || "",
             PO: data.postOffice || "",
             PS: data.policeStation || "",
@@ -215,7 +214,7 @@ const AccountTab = () => {
             <ToastContainer autoClose={3000} pauseOnHover={false} />
             <div style={styles.card}>
                 <div style={styles.cardHeader}>
-                    <h5>Astha Didi Registration</h5>
+                    <h5>New General Member</h5>
                 </div>
                 <div style={styles.cardBody}>
                     <div style={styles.profileSection}>
@@ -602,7 +601,7 @@ const MembersTable = ({ refreshTrigger }) => {
                                             <td style={styles.stickyRightTd}>
                                                 <button onClick={() => openModal('view', row)} style={styles.actionBtn} title="View">👁️</button>
                                                 <button onClick={() => openModal('edit', row)} style={styles.actionBtn} title="Edit">✏️</button>
-                                                {/* <button onClick={() => openModal('delete', row)} style={styles.actionBtn} title="Delete">🗑️</button> */}
+                                                <button onClick={() => openModal('delete', row)} style={styles.actionBtn} title="Delete">🗑️</button>
                                                 {row.Status !== 2 && (
                                                     <button onClick={() => openModal('approve', row)} style={styles.actionBtn} title="Approve">✅</button>
                                                 )}
@@ -679,6 +678,7 @@ const MembersTable = ({ refreshTrigger }) => {
                                 <FormInput label="Full Name" value={selectedRow.PerName || ''} disabled readOnly />
                                 <FormInput label="S/D/W of" value={selectedRow.FathersName || ''} disabled readOnly />
                                 <FormInput label="Date of Birth" value={selectedRow.DOB ? selectedRow.DOB.substring(0, 10) : ''} disabled readOnly />
+                                {/* Mapped to NomineeName under the hood */}
                                 <FormInput label="Guardian Contact no" value={selectedRow.NomineeName || ''} disabled readOnly />
                             </div>
 
@@ -739,6 +739,7 @@ const MembersTable = ({ refreshTrigger }) => {
                                 <FormInput label="Full Name" name="PerName" value={selectedRow.PerName || ''} onChange={handleEditChange} />
                                 <FormInput label="S/D/W of" name="FathersName" value={selectedRow.FathersName || ''} onChange={handleEditChange} />
                                 <FormInput label="Date of Birth" name="DOB" value={selectedRow.DOB ? selectedRow.DOB.substring(0, 10) : ''} onChange={handleEditChange} type="date" />
+                                {/* Editing mapped NomineeName under the hood */}
                                 <FormInput label="Guardian Contact no" name="NomineeName" value={selectedRow.NomineeName || ''} onChange={handleEditChange} />
                             </div>
 
