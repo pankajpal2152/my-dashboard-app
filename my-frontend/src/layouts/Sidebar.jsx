@@ -16,11 +16,13 @@ const Sidebar = () => {
             boxShadow: '0 2px 6px 0 rgba(67, 89, 113, 0.12)',
             zIndex: 10
         },
-        brandWrapper: { padding: '20px 24px', display: 'flex', alignItems: 'center', fontSize: '22px', fontWeight: 'bold', color: '#566a7f', letterSpacing: '-0.5px', textDecoration: 'none' },
-        brandLogo: { width: '32px', height: 'auto', marginRight: '10px' },
+        // Adjusted bottom padding (changed to 5px) to close the gap
+        brandWrapper: { padding: '20px 24px 5px 24px', display: 'flex', alignItems: 'center', fontSize: '22px', fontWeight: 'bold', color: '#566a7f', letterSpacing: '-0.5px', textDecoration: 'none' },
+        brandLogo: { width: '100px', height: 'auto', marginRight: '10px' },
         menuList: { listStyle: 'none', padding: '0', margin: '0', flex: 1, overflowY: 'auto' },
         link: { textDecoration: 'none', display: 'block' },
-        sectionHeader: { fontSize: '11px', textTransform: 'uppercase', color: '#a1acb8', margin: '16px 24px 8px 24px', letterSpacing: '0.4px', fontWeight: '500' },
+        // Adjusted top margin to 0px and slightly increased bottom margin
+        sectionHeader: { fontSize: '11px', textTransform: 'uppercase', color: '#a1acb8', margin: '0px 24px 16px 24px', letterSpacing: '0.4px', fontWeight: '500' },
 
         menuItem: (isActive) => ({
             margin: '0 16px 8px 16px', padding: '10px 16px',
@@ -64,6 +66,9 @@ const Sidebar = () => {
             </div>
 
             <ul style={styles.menuList}>
+                {/* Separator text closer to the logo */}
+                <li style={styles.sectionHeader}>Astha Didi Project</li>
+
                 <NavLink to="/" style={styles.link}>
                     {({ isActive }) => (
                         <li style={styles.menuItem(isActive)}>
