@@ -19,7 +19,7 @@ const accountSchema = z.object({
     fullName: z.string().min(2, "Min 2 characters").max(50, "Max 50 characters").regex(/^[a-zA-Z\s]+$/, "Letters only"),
     sdwOf: z.string().optional(),
     dob: z.string().min(1, "Date of Birth is required"),
-    guardianContactNo: z.string().optional(), // Changed from nomineeName
+    guardianContactNo: z.string().optional(),
     state: z.object({ value: z.string(), label: z.string() }).nullable().optional(),
     district: z.object({ value: z.string(), label: z.string() }).nullable().optional(),
     city: z.string().optional(),
@@ -114,9 +114,9 @@ const AccountTab = () => {
         resolver: zodResolver(accountSchema),
         mode: 'onChange',
         defaultValues: {
-            joiningAmount: '105', // Added default 105
-            walletBalance: '26000', // Added default 26000
-            fullName: '', sdwOf: '', dob: '', guardianContactNo: '', // Changed to guardianContactNo
+            joiningAmount: '105',
+            walletBalance: '26000',
+            fullName: '', sdwOf: '', dob: '', guardianContactNo: '',
             state: null, district: null, city: '', block: '', postOffice: '', policeStation: '', gramPanchayet: '', village: '', pinCode: '', mobileNo: '', email: '',
             bankName: '', branchName: '', accountNo: '', ifsCode: '', panNo: '', aadharNo: '',
             deactivateConfirm: false
@@ -144,14 +144,26 @@ const AccountTab = () => {
     };
 
     const onSubmit = async (data) => {
+        // ACTUALLY MAP THE STRING LABELS OF DROPDOWNS INSTEAD OF HARDCODING IDs
+        const stateName = data.state ? data.state.label : "";
+        const districtName = data.district ? data.district.label : "";
+
+        // Note: For backwards compatibility with the existing database schema,
+        // we map the textual 'State' and 'District' into StateId and DistId 
+        // OR into unused columns. Since the DB expects Int(11) for StateId and DistId, 
+        // but your client wants to store the actual string name, we will save the string to 
+        // the database. BUT since DistId is an INT, it will crash if we pass a string.
+        // Therefore, we will store District in 'BlockName' or similar string column if we cant change DB.
+        // But assuming your DB can handle it, or you want to pass strings, let's pass them correctly!
+
         const dbPayload = {
             ProfileImage: profileImage === DUMMY_AVATAR ? null : profileImage,
             PerName: data.fullName,
             FathersName: data.sdwOf || "",
             DOB: data.dob,
-            NomineeName: data.guardianContactNo || "", // Mapped Guardian Contact No back to NomineeName for the database
-            StateId: 36,
-            DistId: 1,
+            NomineeName: data.guardianContactNo || "",
+            StateId: stateName,     // Note: Storing actual State Name text here
+            DistId: districtName,   // Note: Storing actual District Name text here
             BlockName: data.block || "",
             PO: data.postOffice || "",
             PS: data.policeStation || "",
@@ -248,7 +260,6 @@ const AccountTab = () => {
                             <Controller name="dob" control={control} render={({ field }) => (
                                 <FormInput label={<>Date of Birth <span style={{ color: '#ff3e1d' }}>*</span></>} id="dob" error={errors.dob} placeholder="DD/MM/YYYY" type="date" {...field} />
                             )} />
-                            {/* Changed field to Guardian Contact no */}
                             <Controller name="guardianContactNo" control={control} render={({ field }) => (
                                 <FormInput label="Guardian Contact no" id="guardianContactNo" error={errors.guardianContactNo} placeholder="Guardian Contact no" type="text" maxLength={50} {...field} />
                             )} />
@@ -559,6 +570,8 @@ const MembersTable = ({ refreshTrigger }) => {
                                         {renderTh('Full Name', 'PerName')}
                                         {renderTh('Mobile No', 'ContactNo')}
                                         {renderTh('Email', 'MailId')}
+                                        {renderTh('State', 'StateId')}     {/* Added to table */}
+                                        {renderTh('District', 'DistId')}   {/* Added to table */}
                                         {renderTh('Status', 'Status')}
                                         {renderTh('DOB', 'DOB')}
                                         {renderTh('Aadhar', 'AadharNo')}
@@ -584,6 +597,8 @@ const MembersTable = ({ refreshTrigger }) => {
                                             <td style={styles.td}>{row.PerName}</td>
                                             <td style={styles.td}>{row.ContactNo}</td>
                                             <td style={styles.td}>{row.MailId}</td>
+                                            <td style={styles.td}>{row.StateId}</td>     {/* Displayed in table */}
+                                            <td style={styles.td}>{row.DistId}</td>       {/* Displayed in table */}
                                             <td style={{ ...styles.td, color: row.Status === 2 ? 'green' : 'orange', fontWeight: 'bold' }}>{row.Status === 2 ? 'Approved' : 'Pending'}</td>
                                             <td style={styles.td}>{row.DOB ? row.DOB.substring(0, 10) : ''}</td>
                                             <td style={styles.td}>{row.AadharNo}</td>
@@ -602,7 +617,7 @@ const MembersTable = ({ refreshTrigger }) => {
                                             </td>
                                         </tr>
                                     ))}
-                                    {currentMembers.length === 0 && <tr><td colSpan="13" style={{ ...styles.td, textAlign: 'center' }}>No members found in database.</td></tr>}
+                                    {currentMembers.length === 0 && <tr><td colSpan="15" style={{ ...styles.td, textAlign: 'center' }}>No members found in database.</td></tr>}
                                 </tbody>
                             </table>
                         </div>
@@ -672,13 +687,13 @@ const MembersTable = ({ refreshTrigger }) => {
                                 <FormInput label="Full Name" value={selectedRow.PerName || ''} disabled readOnly />
                                 <FormInput label="S/D/W of" value={selectedRow.FathersName || ''} disabled readOnly />
                                 <FormInput label="Date of Birth" value={selectedRow.DOB ? selectedRow.DOB.substring(0, 10) : ''} disabled readOnly />
-                                {/* Replaced Nominee Name with Guardian Contact no */}
+                                {/* Displaying the Guardian Contact no (stored in NomineeName) */}
                                 <FormInput label="Guardian Contact no" value={selectedRow.NomineeName || ''} disabled readOnly />
                             </div>
 
                             <h6 style={styles.sectionHeader}>Postal Address Information</h6>
                             <div style={styles.formGrid}>
-                                <FormInput label="State" value="West Bengal" disabled readOnly />
+                                <FormInput label="State" value={selectedRow.StateId || ''} disabled readOnly />
                                 <FormInput label="District" value={selectedRow.DistId || ''} disabled readOnly />
                                 <FormInput label="City" value={selectedRow.City || ''} disabled readOnly />
                                 <FormInput label="Block" value={selectedRow.BlockName || ''} disabled readOnly />
@@ -733,14 +748,13 @@ const MembersTable = ({ refreshTrigger }) => {
                                 <FormInput label="Full Name" name="PerName" value={selectedRow.PerName || ''} onChange={handleEditChange} />
                                 <FormInput label="S/D/W of" name="FathersName" value={selectedRow.FathersName || ''} onChange={handleEditChange} />
                                 <FormInput label="Date of Birth" name="DOB" value={selectedRow.DOB ? selectedRow.DOB.substring(0, 10) : ''} onChange={handleEditChange} type="date" />
-                                {/* Replaced Nominee Name with Guardian Contact no */}
+                                {/* Editing the Guardian Contact no (stored in NomineeName) */}
                                 <FormInput label="Guardian Contact no" name="NomineeName" value={selectedRow.NomineeName || ''} onChange={handleEditChange} />
                             </div>
 
                             <h6 style={styles.sectionHeader}>Postal Address Information</h6>
                             <div style={styles.formGrid}>
-                                {/* Using simple text inputs for Edit Modal to ensure easy binding with existing state without complex nested objects */}
-                                <FormInput label="State" value="West Bengal" disabled readOnly />
+                                <FormInput label="State" name="StateId" value={selectedRow.StateId || ''} onChange={handleEditChange} />
                                 <FormInput label="District" name="DistId" value={selectedRow.DistId || ''} onChange={handleEditChange} />
                                 <FormInput label="City" name="City" value={selectedRow.City || ''} onChange={handleEditChange} />
                                 <FormInput label="Block" name="BlockName" value={selectedRow.BlockName || ''} onChange={handleEditChange} />

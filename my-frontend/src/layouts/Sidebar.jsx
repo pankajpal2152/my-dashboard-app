@@ -85,7 +85,7 @@ const Sidebar = () => {
                     <NavLink to="/account-settings/account" style={styles.link}>
                         {({ isActive }) => (
                             <li style={styles.subMenuItem(isActive)}>
-                                <div style={styles.subMenuDot(isActive)}></div> Member Entry
+                                <div style={styles.subMenuDot(isActive)}></div> Profile Entry
                             </li>
                         )}
                     </NavLink>
