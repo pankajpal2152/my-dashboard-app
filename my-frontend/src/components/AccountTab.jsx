@@ -249,7 +249,7 @@ const EditMemberModal = ({ member, onClose, onSuccess }) => {
                     </div>
 
                     <form onSubmit={handleSubmit(onSubmit, onError)}>
-                        <h6 style={styles.sectionHeader}>Sponsor Information</h6>
+                        <h6 style={styles.sectionHeader}>Astha Didi Information</h6>
                         <div style={styles.formGrid}>
                             <Controller name="joiningAmount" control={control} render={({ field }) => (
                                 <FormInput label={<>Joining Amount <span style={{ color: '#ff3e1d' }}>*</span></>} id="edit_joiningAmount" error={errors.joiningAmount} type="number" {...field} />
@@ -365,7 +365,7 @@ const AccountTab = () => {
         mode: 'onChange',
         defaultValues: {
             joiningAmount: '105',
-            walletBalance: '26000',
+            walletBalance: '27000',
             fullName: '', sdwOf: '', dob: '', guardianContactNo: '',
             state: null, district: null, city: '', block: '', postOffice: '', policeStation: '', gramPanchayet: '', village: '', pinCode: '', mobileNo: '', email: '',
             bankName: '', branchName: '', accountNo: '', ifsCode: '', panNo: '', aadharNo: '',
@@ -478,7 +478,7 @@ const AccountTab = () => {
                     </div>
 
                     <form onSubmit={handleSubmit(onSubmit, onError)}>
-                        <h6 style={styles.sectionHeader}>Sponsor Information <span style={{ color: '#ff3e1d', textTransform: 'none' }}>(Member ID : )</span></h6>
+                        <h6 style={styles.sectionHeader}>Astha Didi Information <span style={{ color: '#ff3e1d', textTransform: 'none' }}>(Member ID : )</span></h6>
                         <div style={styles.formGrid}>
                             <Controller name="joiningAmount" control={control} render={({ field }) => (
                                 <FormInput label={<>Joining Amount <span style={{ color: '#ff3e1d' }}>*</span></>} id="joiningAmount" error={errors.joiningAmount} placeholder="Enter Amount" type="number" {...field} />
@@ -902,7 +902,7 @@ const MembersTable = ({ refreshTrigger }) => {
                                 </div>
                             </div>
 
-                            <h6 style={styles.sectionHeader}>Sponsor Information</h6>
+                            <h6 style={styles.sectionHeader}>Astha Didi Information</h6>
                             <div style={styles.formGrid}>
                                 <FormInput label="Joining Amount" value={selectedRow.JoiningAmt || ''} disabled readOnly />
                                 <FormInput label="Wallet Balance" value={selectedRow.WalletBalance || '0'} disabled readOnly />
