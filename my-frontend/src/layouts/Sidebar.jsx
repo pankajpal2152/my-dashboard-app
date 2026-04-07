@@ -76,7 +76,7 @@ const Sidebar = () => {
 
                 <li style={styles.menuItem(false)} onClick={() => setIsAccountMenuOpen(!isAccountMenuOpen)}>
                     <div style={styles.menuItemLeft}>
-                        <span style={{ marginRight: '10px' }}></span>  Entry Section
+                        <span style={{ marginRight: '10px' }}></span>  Profile Section
                     </div>
                     <span style={styles.chevron}>▶</span>
                 </li>

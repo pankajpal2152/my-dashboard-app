@@ -68,8 +68,8 @@ const LoginForm = ({ onLogin, onToggleView }) => {
             <div style={styles.logoContainer}>
                 <img src="/logo.png" alt="App Logo" style={styles.logoImage} />
             </div>
-            <h3 style={styles.welcomeText}>Welcome!</h3>
-            <p style={styles.subText}>Please sign in to your account and start the Astha Didi Project</p>
+            <h3 style={styles.welcomeText}>Welcome! 👋</h3>
+            <p style={styles.subText}>Please sign in to your account and join the Astha Didi Project</p>
 
             <form onSubmit={handleSubmit}>
                 <div style={styles.formGroup}>
@@ -82,7 +82,7 @@ const LoginForm = ({ onLogin, onToggleView }) => {
                 <div style={styles.formGroup}>
                     <div style={styles.labelContainer}>
                         <label htmlFor="password" style={styles.label}>Password</label>
-                        <span style={styles.linkText}>Forgot Password?</span>
+                        {/* <span style={styles.linkText}>Forgot Password?</span> */}
                     </div>
                     <div style={styles.passwordContainer}>
                         <input type={showPassword ? "text" : "password"} id="password" name="password" placeholder="············" style={styles.input} value={credentials.password} onChange={handleChange} />

@@ -19,7 +19,7 @@ const accountSchema = z.object({
     fullName: z.string().min(2, "Min 2 characters").max(50, "Max 50 characters").regex(/^[a-zA-Z\s]+$/, "Letters only"),
     sdwOf: z.string().optional(),
     dob: z.string().min(1, "Date of Birth is required"),
-    nomineeName: z.string().optional(),
+    guardianContactNo: z.string().optional(), // Changed from nomineeName
     state: z.object({ value: z.string(), label: z.string() }).nullable().optional(),
     district: z.object({ value: z.string(), label: z.string() }).nullable().optional(),
     city: z.string().optional(),
@@ -42,7 +42,7 @@ const accountSchema = z.object({
 
 const indianStates = State.getStatesOfCountry('IN').map(state => ({ value: state.isoCode, label: state.name }));
 
-// --- 2. STYLES ---
+// --- 2. STYLES (UPDATED FOR RESPONSIVENESS) ---
 const styles = {
     card: { backgroundColor: '#ffffff', borderRadius: '8px', boxShadow: '0 2px 6px 0 rgba(67, 89, 113, 0.12)', fontFamily: '"Public Sans", sans-serif', overflow: 'hidden', marginBottom: '24px', width: '100%', boxSizing: 'border-box' },
     cardHeader: { padding: '24px', borderBottom: '1px solid #d9dee3', fontSize: '1.125rem', fontWeight: '500', color: '#566a7f', margin: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' },
@@ -114,9 +114,9 @@ const AccountTab = () => {
         resolver: zodResolver(accountSchema),
         mode: 'onChange',
         defaultValues: {
-            joiningAmount: '',
-            walletBalance: '0',
-            fullName: '', sdwOf: '', dob: '', nomineeName: '',
+            joiningAmount: '105', // Added default 105
+            walletBalance: '26000', // Added default 26000
+            fullName: '', sdwOf: '', dob: '', guardianContactNo: '', // Changed to guardianContactNo
             state: null, district: null, city: '', block: '', postOffice: '', policeStation: '', gramPanchayet: '', village: '', pinCode: '', mobileNo: '', email: '',
             bankName: '', branchName: '', accountNo: '', ifsCode: '', panNo: '', aadharNo: '',
             deactivateConfirm: false
@@ -149,7 +149,7 @@ const AccountTab = () => {
             PerName: data.fullName,
             FathersName: data.sdwOf || "",
             DOB: data.dob,
-            NomineeName: data.nomineeName || "",
+            NomineeName: data.guardianContactNo || "", // Mapped Guardian Contact No back to NomineeName for the database
             StateId: 36,
             DistId: 1,
             BlockName: data.block || "",
@@ -248,8 +248,9 @@ const AccountTab = () => {
                             <Controller name="dob" control={control} render={({ field }) => (
                                 <FormInput label={<>Date of Birth <span style={{ color: '#ff3e1d' }}>*</span></>} id="dob" error={errors.dob} placeholder="DD/MM/YYYY" type="date" {...field} />
                             )} />
-                            <Controller name="nomineeName" control={control} render={({ field }) => (
-                                <FormInput label="Nominee Name" id="nomineeName" error={errors.nomineeName} placeholder="Nominee Name" type="text" maxLength={50} {...field} />
+                            {/* Changed field to Guardian Contact no */}
+                            <Controller name="guardianContactNo" control={control} render={({ field }) => (
+                                <FormInput label="Guardian Contact no" id="guardianContactNo" error={errors.guardianContactNo} placeholder="Guardian Contact no" type="text" maxLength={50} {...field} />
                             )} />
                         </div>
 
@@ -671,7 +672,8 @@ const MembersTable = ({ refreshTrigger }) => {
                                 <FormInput label="Full Name" value={selectedRow.PerName || ''} disabled readOnly />
                                 <FormInput label="S/D/W of" value={selectedRow.FathersName || ''} disabled readOnly />
                                 <FormInput label="Date of Birth" value={selectedRow.DOB ? selectedRow.DOB.substring(0, 10) : ''} disabled readOnly />
-                                <FormInput label="Nominee Name" value={selectedRow.NomineeName || ''} disabled readOnly />
+                                {/* Replaced Nominee Name with Guardian Contact no */}
+                                <FormInput label="Guardian Contact no" value={selectedRow.NomineeName || ''} disabled readOnly />
                             </div>
 
                             <h6 style={styles.sectionHeader}>Postal Address Information</h6>
@@ -731,7 +733,8 @@ const MembersTable = ({ refreshTrigger }) => {
                                 <FormInput label="Full Name" name="PerName" value={selectedRow.PerName || ''} onChange={handleEditChange} />
                                 <FormInput label="S/D/W of" name="FathersName" value={selectedRow.FathersName || ''} onChange={handleEditChange} />
                                 <FormInput label="Date of Birth" name="DOB" value={selectedRow.DOB ? selectedRow.DOB.substring(0, 10) : ''} onChange={handleEditChange} type="date" />
-                                <FormInput label="Nominee Name" name="NomineeName" value={selectedRow.NomineeName || ''} onChange={handleEditChange} />
+                                {/* Replaced Nominee Name with Guardian Contact no */}
+                                <FormInput label="Guardian Contact no" name="NomineeName" value={selectedRow.NomineeName || ''} onChange={handleEditChange} />
                             </div>
 
                             <h6 style={styles.sectionHeader}>Postal Address Information</h6>
