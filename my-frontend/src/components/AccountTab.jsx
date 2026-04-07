@@ -601,7 +601,7 @@ const MembersTable = ({ refreshTrigger }) => {
                                             <td style={styles.stickyRightTd}>
                                                 <button onClick={() => openModal('view', row)} style={styles.actionBtn} title="View">👁️</button>
                                                 <button onClick={() => openModal('edit', row)} style={styles.actionBtn} title="Edit">✏️</button>
-                                                <button onClick={() => openModal('delete', row)} style={styles.actionBtn} title="Delete">🗑️</button>
+                                                {/* <button onClick={() => openModal('delete', row)} style={styles.actionBtn} title="Delete">🗑️</button> */}
                                                 {row.Status !== 2 && (
                                                     <button onClick={() => openModal('approve', row)} style={styles.actionBtn} title="Approve">✅</button>
                                                 )}
