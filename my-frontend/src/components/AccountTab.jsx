@@ -109,7 +109,7 @@ const AccountTab = () => {
     const fileInputRef = useRef(null);
     const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-    const { control, handleSubmit, register, reset, watch, formState: { errors } } = useForm({
+    const { control, handleSubmit, reset, watch, formState: { errors } } = useForm({
         resolver: zodResolver(accountSchema),
         mode: 'onChange',
         defaultValues: {
@@ -204,10 +204,11 @@ const AccountTab = () => {
 
     const onError = () => toast.error("Error: Please check the red fields.", { position: "top-right" });
 
-    const onDeactivate = (data) => {
-        if (!data.deactivateConfirm) return toast.warning("Please confirm deactivation.");
-        toast.error("Account Deactivated successfully. Logging out...");
-    };
+    // Commented out to fix the unused variable warning, since the corresponding JSX is also commented out
+    // const onDeactivate = (data) => {
+    //     if (!data.deactivateConfirm) return toast.warning("Please confirm deactivation.");
+    //     toast.error("Account Deactivated successfully. Logging out...");
+    // };
 
     return (
         <>
