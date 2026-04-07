@@ -214,7 +214,7 @@ const AccountTab = () => {
             <ToastContainer autoClose={3000} pauseOnHover={false} />
             <div style={styles.card}>
                 <div style={styles.cardHeader}>
-                    <h5>New General Member</h5>
+                    <h5>Astha Didi Registration</h5>
                 </div>
                 <div style={styles.cardBody}>
                     <div style={styles.profileSection}>
