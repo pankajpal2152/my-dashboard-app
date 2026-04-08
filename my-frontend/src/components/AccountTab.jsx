@@ -116,7 +116,7 @@ const EditMemberModal = ({ member, onClose, onSuccess }) => {
         resolver: zodResolver(accountSchema),
         mode: 'onChange',
         defaultValues: {
-            joiningAmount: String(member.JoiningAmt || '0'),
+            joiningAmount: String(member.JoiningAmt || '5000'),
             walletBalance: String(member.WalletBalance || ''),
             fullName: member.PerName || '',
             sdwOf: member.GuardianName || '',
@@ -194,7 +194,7 @@ const EditMemberModal = ({ member, onClose, onSuccess }) => {
             IFSCode: data.ifsCode || "",
             PanNo: data.panNo || "",
             AadharNo: data.aadharNo,
-            JoiningAmt: parseInt(data.joiningAmount) || 0,
+            JoiningAmt: parseInt(data.joiningAmount) || 5000,
             WalletBalance: parseInt(data.walletBalance) || 0,
             // Keep original creator, or fallback to current user if missing
             CreatedBy: member.CreatedBy || (loggedInUser ? loggedInUser.email : "")
@@ -368,7 +368,7 @@ const AccountTab = () => {
         resolver: zodResolver(accountSchema),
         mode: 'onChange',
         defaultValues: {
-            joiningAmount: '0',
+            joiningAmount: '5000',
             walletBalance: '27000',
             fullName: '', sdwOf: '', dob: '', guardianContactNo: '',
             state: null, district: null, city: '', block: '', postOffice: '', policeStation: '', gramPanchayet: '', village: '', pinCode: '', mobileNo: '', email: '',
@@ -429,7 +429,7 @@ const AccountTab = () => {
             IFSCode: data.ifsCode || "",
             PanNo: data.panNo || "",
             AadharNo: data.aadharNo,
-            JoiningAmt: parseInt(data.joiningAmount) || 0,
+            JoiningAmt: parseInt(data.joiningAmount) || 5000,
             WalletBalance: parseInt(data.walletBalance) || 0,
             Status: 1,
             AprovedBy: null,
@@ -925,7 +925,7 @@ const MembersTable = ({ refreshTrigger }) => {
 
                             <h6 style={styles.sectionHeader}>Astha Didi Information</h6>
                             <div style={styles.formGrid}>
-                                <FormInput label="Joining Amount" value={selectedRow.JoiningAmt || '0'} disabled readOnly />
+                                <FormInput label="Joining Amount" value={selectedRow.JoiningAmt || '5000'} disabled readOnly />
                                 <FormInput label="Wallet Balance" value={selectedRow.WalletBalance || '0'} disabled readOnly />
                             </div>
 
