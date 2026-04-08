@@ -115,10 +115,17 @@ const SignupForm = ({ onSignup, onToggleView }) => {
     const [credentials, setCredentials] = useState({ role: '', username: '', email: '', password: '' });
 
     // Fetch Roles dynamically from database userinfo table
+    // Fetch Roles dynamically from database userinfo table
     useEffect(() => {
         fetch('https://my-dashboard-app-ky8v.onrender.com/userinfo')
             .then(res => res.json())
-            .then(data => setRoles(data))
+            .then(data => {
+                // NEW CODE: Filter the roles to ONLY include 'Astha Didi'
+                const filteredRoles = data.filter(role => role.UserType === 'Astha Didi');
+
+                // Set only the filtered list into the state
+                setRoles(filteredRoles);
+            })
             .catch(err => console.error("Error fetching roles: ", err));
     }, []);
 

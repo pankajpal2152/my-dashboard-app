@@ -11,6 +11,11 @@ import Login from './pages/Login';
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+  // --- FEATURE FLAG ---
+  // Set to 'false' for now: Landing page is Profile, Dashboard menu is hidden.
+  // Set to 'true' later: Landing page is Dashboard, Dashboard menu is visible.
+  const isDashboardEnabled = false;
+
   const styles = {
     appContainer: {
       display: 'flex',
@@ -47,12 +52,24 @@ const App = () => {
         <Route path="*" element={
           isAuthenticated ? (
             <div style={styles.appContainer}>
-              <Sidebar />
+              {/* Pass the feature flag to the Sidebar */}
+              <Sidebar isDashboardEnabled={isDashboardEnabled} />
               <div style={styles.mainContent}>
                 <Navbar />
                 <div style={styles.contentArea}>
                   <Routes>
-                    <Route path="/" element={<Dashboard />} />
+                    {/* CONDITIONAL LANDING PAGE ROUTING */}
+                    <Route
+                      path="/"
+                      element={
+                        isDashboardEnabled ? (
+                          <Dashboard />
+                        ) : (
+                          <Navigate to="/account-settings/account" replace />
+                        )
+                      }
+                    />
+
                     <Route path="/layouts" element={<Maintenance pageName="Layouts" />} />
                     <Route path="/account-settings/account" element={<AccountSettings />} />
                     <Route path="*" element={<Maintenance pageName="404 Not Found" />} />

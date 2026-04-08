@@ -2,7 +2,8 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 
-const Sidebar = () => {
+// Added isDashboardEnabled as a prop to accept the feature flag from App.js
+const Sidebar = ({ isDashboardEnabled = false }) => {
     const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(true);
 
     const styles = {
@@ -21,8 +22,20 @@ const Sidebar = () => {
         brandLogo: { width: '100px', height: 'auto', marginRight: '10px' },
         menuList: { listStyle: 'none', padding: '0', margin: '0', flex: 1, overflowY: 'auto' },
         link: { textDecoration: 'none', display: 'block' },
-        // Adjusted top margin to 0px and slightly increased bottom margin
-        sectionHeader: { fontSize: '11px', textTransform: 'uppercase', color: '#a1acb8', margin: '0px 24px 16px 24px', letterSpacing: '0.4px', fontWeight: '500' },
+
+        // UPDATED: Made bold, highlighted, colorful, and visually distinct matching logo colors (Blue/Green)
+        sectionHeader: {
+            fontSize: '12px',
+            textTransform: 'uppercase',
+            color: '#005bb5', // Vibrant blue matching the logo
+            backgroundColor: '#e8f3fc', // Soft highlighted background
+            padding: '8px 12px',
+            borderRadius: '6px',
+            margin: '10px 24px 16px 24px',
+            letterSpacing: '0.5px',
+            fontWeight: '900', // Made extra bold
+            borderLeft: '4px solid #009a44' // Green accent from the logo
+        },
 
         menuItem: (isActive) => ({
             margin: '0 16px 8px 16px', padding: '10px 16px',
@@ -69,15 +82,18 @@ const Sidebar = () => {
                 {/* Separator text closer to the logo */}
                 <li style={styles.sectionHeader}>Astha Didi Project</li>
 
-                <NavLink to="/" style={styles.link}>
-                    {({ isActive }) => (
-                        <li style={styles.menuItem(isActive)}>
-                            <div style={styles.menuItemLeft}>
-                                <span style={{ marginRight: '10px' }}>🏠</span> Dashboard
-                            </div>
-                        </li>
-                    )}
-                </NavLink>
+                {/* Conditional rendering based on the flag */}
+                {isDashboardEnabled && (
+                    <NavLink to="/" style={styles.link}>
+                        {({ isActive }) => (
+                            <li style={styles.menuItem(isActive)}>
+                                <div style={styles.menuItemLeft}>
+                                    <span style={{ marginRight: '10px' }}>🏠</span> Dashboard
+                                </div>
+                            </li>
+                        )}
+                    </NavLink>
+                )}
 
                 <li style={styles.menuItem(false)} onClick={() => setIsAccountMenuOpen(!isAccountMenuOpen)}>
                     <div style={styles.menuItemLeft}>
