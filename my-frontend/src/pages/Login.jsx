@@ -179,9 +179,9 @@ const SignupForm = ({ onSignup, onToggleView }) => {
                         ) : (
                             // Fallback if network is slow
                             <>
-                                {/* <option value="State Super Administrator">State Super Administrator</option>
+                                <option value="State Super Administrator">State Super Administrator</option>
                                 <option value="District Administrator">District Administrator</option>
-                                <option value="Supervisor">Supervisor</option> */}
+                                <option value="Supervisor">Supervisor</option>
                                 <option value="Astha Didi">Astha Didi</option>
                             </>
                         )}

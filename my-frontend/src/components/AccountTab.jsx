@@ -789,7 +789,7 @@ const MembersTable = ({ refreshTrigger }) => {
     return (
         <div style={{ ...styles.card, overflow: 'hidden' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '24px 24px 0 24px' }}>
-                <h5 style={styles.cardHeader}>Registered Members List</h5>
+                <h5 style={styles.cardHeader}>Your Registered Profile</h5>
                 <button onClick={fetchMembers} style={styles.btnOutline}>Refresh Data</button>
             </div>
 
